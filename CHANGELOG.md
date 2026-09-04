@@ -202,9 +202,47 @@ evidence packages:
   `evidence.md` covering the package model, the build pipeline, the two
   verification depths, and the honest limits.
 
+### Phase 6 — Reporting services (complete)
+
+Reproducible, bounded summaries of audit history:
+
+- **`safeguard-audit-reporting`** — the deterministic
+  `ReportQuery` → `AuditQuery` mapping (network, token, account,
+  outcome, event kinds, time range; inverted wire ranges rejected —
+  serde bypasses `TimeRange::new`'s constructor validation), and
+  `ReportService`: authorize the requester (`generate-report` at the
+  service's network scope), validate the request (unsupported kinds and
+  ceilings that would protect nothing are rejected), scan the matching
+  range in deterministic history order, apply the classification
+  ceiling (records at or above the query's sensitivity ceiling are
+  excluded — a report never leaks protected data) and multi-token
+  membership, assemble count-only summaries plus public
+  transaction-reference rows, and seal the report with a deterministic
+  id (network + kind + canonical query) and a content digest over its
+  canonical bytes. Every generation is recorded as a derived
+  `report-generated` event.
+- **Wire-contract fixes** — regenerating the placeholder compliance
+  report fixture (fake digest) from real output exposed two Phase-1
+  drifts: `record_refs` was declared as plain strings in the schema
+  while the model carries `TransactionReference` objects, and the
+  query's `outcome`/`classification_ceiling` enums combined
+  `type: ["string","null"]` with a string-only enum, which JSON Schema
+  rejects for null values. The schema now matches the real serde
+  shapes; the approved-transfer event fixture also gained its missing
+  `details` field.
+- **Scenarios, vectors, invariants** — end-to-end tests over the real
+  pipeline (denied-transactions and compliance-activity reports,
+  reproducibility, denial of read-only reviewers), a
+  `test-vectors/reporting` corpus as the executable contract for query
+  mapping, and cross-cutting invariants pinning byte-identical
+  reproducibility and the ceiling-enforced bound on rows.
+- **Example, docs** — the runnable `generate-report` example and
+  `reporting.md` covering the report model, the generation pipeline,
+  the reproducibility guarantee, and the boundaries.
+
 ### Later phases
 
-Phases 7+ (reporting, privacy enforcement, Soroban/RPC adapters, the
-simulator bridge, the optional on-chain registry, and
-security/performance hardening) are planned; see `docs/architecture.md`
-for the map and this file will record each as it lands.
+Phases 8+ (privacy enforcement, Soroban/RPC adapters, the simulator
+bridge, the optional on-chain registry, and security/performance
+hardening) are planned; see `docs/architecture.md` for the map and this
+file will record each as it lands.
