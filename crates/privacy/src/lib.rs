@@ -35,8 +35,10 @@
 //! semantic event types); this crate only stops protected values from
 //! being repeated.
 
+pub mod ceiling;
 pub mod disclosure;
 pub mod redaction;
 
+pub use ceiling::disclosure_ceiling;
 pub use disclosure::{disclose_details, redacted_keys, RecordDisclosure};
 pub use redaction::{is_redacted, redact_details, REDACTED_MARKER};
