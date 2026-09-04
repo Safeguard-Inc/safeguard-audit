@@ -225,6 +225,42 @@ impl EvidencePackage {
 }
 
 #[cfg(test)]
+impl EvidencePackage {
+    /// Test-only convenience: validates both halves of a deserialized
+    /// package (serde construction bypasses [`EvidencePackage::new`]).
+    fn validate_package(&self) -> EvidenceResult<()> {
+        self.artifact.validate().map_err(EvidenceError::from_core)?;
+        self.manifest.validate().map_err(EvidenceError::from_core)?;
+        Ok(())
+    }
+
+    pub(crate) fn with_artifact_for_test(mut self, artifact: EvidenceArtifact) -> Self {
+        self.artifact = artifact;
+        self
+    }
+
+    pub(crate) fn with_manifest_for_test(mut self, manifest: EvidenceManifest) -> Self {
+        self.manifest = manifest;
+        self
+    }
+}
+
+#[cfg(test)]
+impl EvidenceManifest {
+    /// Test-only: replaces the entries of an otherwise-valid manifest to
+    /// simulate a tampered inventory.
+    pub(crate) fn from_entries_for_test(
+        original: EvidenceManifest,
+        entries: Vec<ManifestEntry>,
+    ) -> Self {
+        Self {
+            entries,
+            ..original
+        }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use safeguard_audit_core::{AuditorId, EvidenceKind, EvidenceProvenance, RecordId};
@@ -323,41 +359,5 @@ mod tests {
         let back: EvidencePackage = serde_json::from_str(&json).unwrap();
         assert_eq!(back, package);
         assert!(back.validate_package().is_ok());
-    }
-}
-
-#[cfg(test)]
-impl EvidencePackage {
-    /// Test-only convenience: validates both halves of a deserialized
-    /// package (serde construction bypasses [`EvidencePackage::new`]).
-    fn validate_package(&self) -> EvidenceResult<()> {
-        self.artifact.validate().map_err(EvidenceError::from_core)?;
-        self.manifest.validate().map_err(EvidenceError::from_core)?;
-        Ok(())
-    }
-
-    pub(crate) fn with_artifact_for_test(mut self, artifact: EvidenceArtifact) -> Self {
-        self.artifact = artifact;
-        self
-    }
-
-    pub(crate) fn with_manifest_for_test(mut self, manifest: EvidenceManifest) -> Self {
-        self.manifest = manifest;
-        self
-    }
-}
-
-#[cfg(test)]
-impl EvidenceManifest {
-    /// Test-only: replaces the entries of an otherwise-valid manifest to
-    /// simulate a tampered inventory.
-    pub(crate) fn from_entries_for_test(
-        original: EvidenceManifest,
-        entries: Vec<ManifestEntry>,
-    ) -> Self {
-        Self {
-            entries,
-            ..original
-        }
     }
 }
