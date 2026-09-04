@@ -113,6 +113,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "safeguard-audit-indexer"
+version = "0.1.0"
+dependencies = [
+ "safeguard-audit-core",
+ "safeguard-audit-memory-store",
+ "safeguard-audit-normalizer",
+ "safeguard-audit-storage",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "safeguard-audit-memory-store"
 version = "0.1.0"
 dependencies = [

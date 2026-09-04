@@ -1,0 +1,22 @@
+[package]
+name = "safeguard-audit-indexer"
+description = "Checkpointed, idempotent event ingestion for the Safeguard audit layer: pulls raw events from an EventSource, normalizes them, deduplicates by deterministic event identity, and appends audit records atomically."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-normalizer = { path = "../event-normalizer" }
+safeguard-audit-storage = { path = "../storage" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+safeguard-audit-memory-store = { path = "../memory-store" }
