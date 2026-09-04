@@ -95,8 +95,10 @@ Phases:
    memory store, schemas, fixtures, governance, CI. *Complete.*
 2. **Event pipeline** — normalization, validation, ingestion, dedup,
    ordering, indexing, checkpointing (EventSource + indexer crates).
+   *Complete.*
 3. **Integrity** — canonical hashing implementation, chained digests,
    manifest generation, verification and tamper detection tooling.
+   *Complete.*
 4. **Authorization** — authorizer services over the core role/scope model,
    credential and access logging services. *Complete (see `authorization.md`, `auditor-model.md`, `access-control.md`).*
 5. **Investigation** — case services, timelines, findings.

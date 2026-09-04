@@ -42,6 +42,51 @@ of the audit layer:
   synthetic schema-valid fixtures, gated by a strict/structural checker.
 - **Governance** — CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, this file.
 
+### Phase 3 — Authorization services (complete)
+
+The decision engine over the Phase-1 authorization models, and the
+access trail that records its outcomes:
+
+- **`safeguard-audit-authorization`** — the role-to-permission matrix
+  (one auditable cumulative table per `AuditorRole`, least-privilege by
+  default); per-identity permission sets with additive/subtractive
+  overrides that are explainable (`GrantedByRole`, `GrantedByOverride`,
+  `ExplicitlyDenied`, `NotGranted`) and validated against role-baseline
+  noise; scope containment as the single path to a grant (`All` covers
+  everything by policy only, kinds never cross, classification grants
+  are directional, time ranges must fully contain); auditor credentials
+  with time-aware expiry and revocation verified against an injected
+  clock (with hashed, never-exposed credential references); the auditor
+  registry (who holds which role, scopes, and credential; scope-less
+  grants rejected); and the authorizer composing credential → action →
+  scope into an attributed decision with the fixed contract order.
+- **Audit-access logging** — every decision becomes an `AuditAccessEntry`
+  and lands in the `EventStore` as a derived `audit-access` record
+  (idempotent per entry id, never re-authorized: the recursion boundary
+  is explicit). The projection now stamps attribution — `auditor`,
+  `accessed_at`, and `classification` — so a stored record answers
+  who/what/when directly; the entry model gained the matching
+  `classification()` accessor.
+- **Privacy linkage** — `scope_for_classification` maps a record's
+  `DataClassification` to the scope that must be granted, and
+  `covers_classification` asks whether grants reach that level, so
+  protected data is gated by the same containment rules as everything
+  else.
+- **Scenarios and invariants** — end-to-end authorization tests
+  (authorized reads, action denials, out-of-scope requests, expired
+  credentials denying even an administrator, a four-hop privilege-
+  escalation attempt where every hop is denied/out-of-scope and
+  recorded); cross-cutting invariants (no protected-data access without
+  a granted classification scope, full attribution on every access
+  record, unregistered auditors denied cleanly); and
+  `test-vectors/authorization` as an executable corpus of allowed/
+  denied/out-of-scope decisions.
+- **Fixtures, examples, docs** — schema-validated decision fixtures for
+  every outcome (granted/denied/out-of-scope) plus schema coverage for
+  the unauthorized auditor fixture; the runnable `authorize-access`
+  example; and `authorization`, `auditor-model`, and `access-control`
+  docs.
+
 ### Phase 2 — Event pipeline and integrity (complete)
 
 The ingestion, normalization, indexing, and tamper-evidence layer:
@@ -87,8 +132,8 @@ The ingestion, normalization, indexing, and tamper-evidence layer:
 
 ### Later phases
 
-Phases 3+ (audit authorization services, investigation services,
-evidence generation, reporting, privacy enforcement, Soroban/RPC
-adapters, the simulator bridge, the optional on-chain registry, and
-security/performance hardening) are planned; see `docs/architecture.md`
-for the map and this file will record each as it lands.
+Phases 5+ (investigation services, evidence generation, reporting,
+privacy enforcement, Soroban/RPC adapters, the simulator bridge, the
+optional on-chain registry, and security/performance hardening) are
+planned; see `docs/architecture.md` for the map and this file will
+record each as it lands.
