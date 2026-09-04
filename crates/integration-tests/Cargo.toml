@@ -20,6 +20,7 @@ safeguard-audit-indexer = { path = "../event-indexer" }
 safeguard-audit-investigation = { path = "../investigation" }
 safeguard-audit-memory-store = { path = "../memory-store" }
 safeguard-audit-normalizer = { path = "../event-normalizer" }
+safeguard-audit-privacy = { path = "../privacy" }
 safeguard-audit-reporting = { path = "../reporting" }
 safeguard-audit-storage = { path = "../storage" }
 serde = { workspace = true, features = ["derive"] }

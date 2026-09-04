@@ -165,6 +165,7 @@ dependencies = [
  "safeguard-audit-investigation",
  "safeguard-audit-memory-store",
  "safeguard-audit-normalizer",
+ "safeguard-audit-privacy",
  "safeguard-audit-reporting",
  "safeguard-audit-storage",
  "serde",
