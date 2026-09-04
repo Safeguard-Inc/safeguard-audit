@@ -10,7 +10,7 @@
 use safeguard_audit_core::{
     AuditRecord, CaseStatus, Clock, DataClassification, NetworkId, VersionLabel,
 };
-use safeguard_audit_events::{EventSlot, InvestigationLifecycle};
+use safeguard_audit_events::{EventSlot, InvestigationLifecycle, LifecycleKind};
 use safeguard_audit_storage::{EventStore, InsertOutcome};
 
 use crate::errors::{InvestigationError, InvestigationResult};
@@ -24,6 +24,12 @@ pub struct LifecycleStep {
     pub case: String,
     /// The acting auditor (stable id string).
     pub actor: String,
+    /// What kind of step this is (opened/updated/closed).
+    pub kind: LifecycleKind,
+    /// The zero-based sequence of this step within the case history.
+    /// Part of the event identity, so distinct steps of one case never
+    /// collide in the store.
+    pub sequence: u32,
     /// The new status after the step.
     pub status: CaseStatus,
     /// Short summary or closure reason, when relevant.
@@ -43,6 +49,8 @@ impl LifecycleStep {
             parser,
             case: parse_case(&self.case)?,
             actor: parse_actor(&self.actor)?,
+            kind: self.kind,
+            sequence: self.sequence,
             status: self.status,
             summary: self.summary.clone(),
         };
@@ -89,17 +97,17 @@ fn parse_actor(raw: &str) -> InvestigationResult<safeguard_audit_core::AuditorId
 #[cfg(test)]
 mod tests {
     use super::*;
-    use safeguard_audit_core::{
-        EventKind, FixedClock, NetworkId, PageRequest, Timestamp,
-    };
+    use safeguard_audit_core::{EventKind, FixedClock, NetworkId, PageRequest, Timestamp};
     use safeguard_audit_memory_store::MemoryEventStore;
     use safeguard_audit_storage::{AuditQuery, EventStore};
 
-    fn step(status: CaseStatus) -> LifecycleStep {
+    fn step(kind: LifecycleKind, status: CaseStatus) -> LifecycleStep {
         LifecycleStep {
             network: NetworkId::new(NetworkId::TESTNET).unwrap(),
             case: "case_01010101010101010101010101010101".into(),
             actor: "aud_01010101010101010101010101010101".into(),
+            kind,
+            sequence: 0,
             status,
             summary: None,
         }
@@ -108,13 +116,13 @@ mod tests {
     #[test]
     fn steps_project_to_the_expected_kinds() {
         let parser = VersionLabel::new("1.0.0").unwrap();
-        let opened = step(CaseStatus::Open)
+        let opened = step(LifecycleKind::Opened, CaseStatus::Open)
             .to_event(crate::SOURCE_LABEL, parser.clone())
             .unwrap();
-        let updated = step(CaseStatus::Investigating)
+        let updated = step(LifecycleKind::Updated, CaseStatus::Investigating)
             .to_event(crate::SOURCE_LABEL, parser.clone())
             .unwrap();
-        let closed = step(CaseStatus::Closed)
+        let closed = step(LifecycleKind::Closed, CaseStatus::Closed)
             .to_event(crate::SOURCE_LABEL, parser)
             .unwrap();
         assert_eq!(opened.kind, EventKind::InvestigationOpened);
@@ -130,9 +138,17 @@ mod tests {
         let parser = VersionLabel::new("1.0.0").unwrap();
         let clock = FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000));
         let mut store = MemoryEventStore::new();
-        let step = step(CaseStatus::Investigating).with_summary_for_test();
+        let a_step =
+            step(LifecycleKind::Updated, CaseStatus::Investigating).with_summary_for_test();
 
-        record_step(&step, crate::SOURCE_LABEL, parser, &clock, &mut store).unwrap();
+        record_step(
+            &a_step,
+            crate::SOURCE_LABEL,
+            parser.clone(),
+            &clock,
+            &mut store,
+        )
+        .unwrap();
         let page = store
             .query(
                 &AuditQuery::builder().build().unwrap(),
@@ -146,6 +162,25 @@ mod tests {
             items[0].event.details.get("status").map(String::as_str),
             Some("investigating")
         );
+        // An update that leaves the case Open is still an update, not a
+        // second open.
+        let stay_open = step(LifecycleKind::Updated, CaseStatus::Open);
+        let event = stay_open
+            .to_event(crate::SOURCE_LABEL, parser.clone())
+            .unwrap();
+        assert_eq!(event.kind, EventKind::InvestigationUpdated);
+        // Two distinct steps of the same case derive distinct ids, and the
+        // same step re-run derives the same id.
+        let s1 = step(LifecycleKind::Updated, CaseStatus::Investigating);
+        let s2 = LifecycleStep {
+            sequence: 1,
+            ..s1.clone()
+        };
+        let e1 = s1.to_event(crate::SOURCE_LABEL, parser.clone()).unwrap();
+        let e2 = s2.to_event(crate::SOURCE_LABEL, parser.clone()).unwrap();
+        assert_ne!(e1.event_id, e2.event_id);
+        let e1_again = s1.to_event(crate::SOURCE_LABEL, parser.clone()).unwrap();
+        assert_eq!(e1.event_id, e1_again.event_id);
         assert_eq!(
             items[0].event.details.get("case").map(String::as_str),
             Some("case_01010101010101010101010101010101")
@@ -157,9 +192,16 @@ mod tests {
         let parser = VersionLabel::new("1.0.0").unwrap();
         let clock = FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000));
         let mut store = MemoryEventStore::new();
-        let step = step(CaseStatus::Open);
+        let step = step(LifecycleKind::Opened, CaseStatus::Open);
 
-        record_step(&step, crate::SOURCE_LABEL, parser.clone(), &clock, &mut store).unwrap();
+        record_step(
+            &step,
+            crate::SOURCE_LABEL,
+            parser.clone(),
+            &clock,
+            &mut store,
+        )
+        .unwrap();
         record_step(&step, crate::SOURCE_LABEL, parser, &clock, &mut store).unwrap();
         assert_eq!(store.len(), 1);
     }
@@ -171,7 +213,7 @@ mod tests {
         let mut store = MemoryEventStore::new();
         let bad = LifecycleStep {
             case: "not-a-case".into(),
-            ..step(CaseStatus::Open)
+            ..step(LifecycleKind::Opened, CaseStatus::Open)
         };
         assert!(record_step(&bad, crate::SOURCE_LABEL, parser, &clock, &mut store).is_err());
         assert!(store.is_empty());
