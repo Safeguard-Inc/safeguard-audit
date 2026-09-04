@@ -137,7 +137,7 @@ impl<F: SorobanEventFeed> EventSource for SorobanEventSource<F> {
 /// The fixed widths make plain lexicographic comparison equal to
 /// chronological comparison, which is what the ordering guarantees rely
 /// on.
-fn is_toid_id(id: &str) -> bool {
+pub(crate) fn is_toid_id(id: &str) -> bool {
     let bytes = id.as_bytes();
     bytes.len() == 30
         && bytes[19] == b'-'

@@ -39,8 +39,10 @@
 //! Anything below is synthetic test data — this repository never
 //! hard-codes credentials or real network endpoints.
 
+pub mod mapping;
 pub mod source;
 pub mod wire;
 
+pub use mapping::{parse_ledger_close_time, to_normalized, NormalizedParts};
 pub use source::{SorobanEventFeed, SorobanEventSource};
 pub use wire::{SorobanEvent, SorobanEventType, SorobanEventsResult};
