@@ -94,6 +94,8 @@ crates/
   integrity/         Canonical hashing, chained digests, manifests, verification
   authorization/     Role matrix, scope containment, credentials, access log
   investigation/     Case store + lifecycle service; findings, notes, closure
+  evidence/          Evidence packages: sealed artifacts + integrity manifests,
+                     structure- and store-backed verification
 schemas/             17 JSON Schemas for the wire contracts (checked in CI)
 fixtures/            Synthetic schema-valid instances for every contract
 interfaces/          Planned: cross-repo protocol references (events to/from hooks)
@@ -106,7 +108,7 @@ docs/                Architecture, model, and operations documentation
 consolidation is recorded in `docs/architecture.md` — the same
 interfaces-as-cross-repo-protocol discipline the sibling repos follow.
 
-## Status: Phases 1-4 complete
+## Status: Phases 1-5 complete
 
 Implemented, tested, and pushed to `main`:
 
@@ -138,8 +140,16 @@ Implemented, tested, and pushed to `main`:
   lifecycle event projection with explicit step kinds and sequence
   identity. End-to-end denial-to-closed scenarios, lifecycle vector
   corpus, closed/escalated fixtures, the `create-investigation` example.
+- **Phase 5 — Evidence.** `evidence` crate: the `EvidenceBuilder`
+  (authorize → fetch → integrity gate → deterministic order → seal), the
+  `EvidencePackage` model (artifact + artifact-linked integrity
+  manifest), and two-depth verification (structure-only for exports,
+  store-backed for per-record digests), with every generation recorded
+  as an `evidence-generated` event. End-to-end pipeline scenarios,
+  evidence-integrity vector corpus, real generated fixtures, the
+  `generate-evidence` example.
 
-Phases 5+ are defined in `docs/architecture.md`.
+Phases 6+ are defined in `docs/architecture.md`.
 
 ## Development
 
