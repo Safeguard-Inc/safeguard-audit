@@ -42,11 +42,53 @@ of the audit layer:
   synthetic schema-valid fixtures, gated by a strict/structural checker.
 - **Governance** — CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, this file.
 
+### Phase 2 — Event pipeline and integrity (complete)
+
+The ingestion, normalization, indexing, and tamper-evidence layer:
+
+- **`EventSource` boundary** (`audit-core::source`) — the narrow door
+  every raw event enters through: forward-only, resumable-from-any-
+  position pages of raw items, provider-neutral by construction.
+- **`safeguard-audit-normalizer`** — deterministic normalization:
+  per-scheme parsers that reject unknown fields and wrong types, a
+  validator that enforces type-dependent field presence and identifier
+  shapes (and re-derives every envelope reference through its public
+  constructor), a classifier that projects raw forms onto the envelope
+  with canonical on-chain identity, and the `Normalizer` service that
+  runs the whole pipeline per item and gates network consistency.
+  The scheme registry is deliberately narrow: `hooks-state-event`
+  (observed) and `audit-envelope` (re-ingest); transfer outcomes are
+  never a raw scheme because denials are not emitted on-chain.
+  The parse-validate-classify audit also caught and fixed a Phase-1
+  wire-contract drift (`decision.policy` schema vs the real serde shape).
+- **`safeguard-audit-indexer`** — checkpointed, idempotent ingestion:
+  `run_once` fetches a page, normalizes, verifies strictly increasing
+  placement, appends atomically, and checkpoints only after the write
+  landed; dedup is keyed by deterministic event identity (skip or fail
+  policies); malformed items abort or quarantine per policy; bounded
+  `replay_into` reconstructs history into a caller-provided store
+  without touching production.
+- **`safeguard-audit-integrity`** — tamper-evident hashing over the
+  `audit-core` vocabulary: canonical record digests (never hashing the
+  record's own integrity block), the chained scheme
+  (`digest(N) = H(prev || record(N))`) with deterministic sealing,
+  integrity manifest generation with recomputed per-record digests and
+  an aggregate over the inventory, machine-readable verification
+  (per-record, whole-chain, manifest, aggregate), and tamper location.
+- **Test vectors and invariants** — `test-vectors/normalization` as an
+  executable corpus (valid + malformed with declared failure classes),
+  store-integration integrity tests across the persistence boundary,
+  an `safeguard-audit-integration-tests` crate driving the full
+  pipeline end-to-end, and a cross-cutting invariants suite (including
+  the unified rule that unknown placement sorts after known placement).
+- **Examples and docs** — runnable `ingest-event` and `verify-record`
+  demos; `event-ingestion`, `event-normalization`, `indexing`, and
+  `evidence-integrity` docs.
+
 ### Later phases
 
-Phases 2+ (event pipeline and normalization, integrity hashing, audit
-authorization services, investigation services, evidence generation,
-reporting, privacy enforcement, Soroban/RPC adapters, the simulator
-bridge, the optional on-chain registry, and security/performance
-hardening) are planned; see `docs/architecture.md` for the map and this
-file will record each as it lands.
+Phases 3+ (audit authorization services, investigation services,
+evidence generation, reporting, privacy enforcement, Soroban/RPC
+adapters, the simulator bridge, the optional on-chain registry, and
+security/performance hardening) are planned; see `docs/architecture.md`
+for the map and this file will record each as it lands.

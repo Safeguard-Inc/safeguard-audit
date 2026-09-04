@@ -80,7 +80,12 @@ repos. Where a spec module landed elsewhere, this table says where:
 | audit-events modules (`compliance`, `transfer`, `freeze`, `authorization`, `policy`, `sanctions`, `investigation`, `audit`, `transaction`, `event_id`, `errors`) | `crates/audit-events/src/` |
 | storage (`store`, `query`, `transaction`, `pagination`, `errors`); memory-store | `crates/storage`, `crates/memory-store` |
 | schemas, fixtures, scripts, docs, governance | top-level directories |
-| `interfaces/event-source/*.rs` etc. | interfaces are **cross-repo protocol references** (markdown), matching the sibling repos; provider-neutral *traits* live in the crates that own them (`EventStore` in `storage`). Phase 2 adds the `EventSource` trait home and the indexer. |
+| `interfaces/event-source/*.rs` etc. | interfaces are **cross-repo protocol references** (markdown), matching the sibling repos; provider-neutral *traits* live in the crates that own them: `EventStore` in `storage`, `EventSource` in `audit-core::source`, `CheckpointStore` in `event-indexer::checkpoint`. |
+| event-normalizer modules (`normalizer`, `parser`, `validator`, `classifier`, `metadata`, `errors`) | `crates/event-normalizer/src/` |
+| event-indexer modules (`indexer`, `cursor`, `checkpoint`, `ordering`, `deduplication`, `replay`, `errors`) | `crates/event-indexer/src/` |
+| integrity modules (`hashing`, `digest`, `chain`, `manifest`, `verification`, `tamper`, `errors`) | `crates/integrity/src/` (the persisted *vocabulary* stays in `audit-core::integrity`) |
+| `test-vectors/normalization` | top-level corpus consumed at runtime by the normalizer integration test |
+| integration tests (`tests/integration/end_to_end` etc.) | `crates/integration-tests/tests/` |
 | `tests/`, `benches/`, `examples/`, `cli/`, `contracts/audit-registry`, later crates | land in later phases with their subsystems |
 
 Phases:
