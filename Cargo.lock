@@ -145,6 +145,7 @@ dependencies = [
  "safeguard-audit-core",
  "safeguard-audit-indexer",
  "safeguard-audit-integrity",
+ "safeguard-audit-investigation",
  "safeguard-audit-memory-store",
  "safeguard-audit-normalizer",
  "safeguard-audit-storage",

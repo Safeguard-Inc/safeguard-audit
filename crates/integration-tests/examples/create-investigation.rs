@@ -19,12 +19,11 @@
 
 use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
 use safeguard_audit_core::{
-    AccessScope, AuditorId, AuditorRole, CaseStatus, EventKind, EventSource, FixedClock,
-    NetworkId, PageRequest, Priority, RawEventItem, SourcePage, SourceResult, Timestamp,
-    VersionLabel,
+    AccessScope, AuditorId, AuditorRole, CaseStatus, EventKind, EventSource, FixedClock, NetworkId,
+    PageRequest, Priority, RawEventItem, SourcePage, SourceResult, Timestamp, VersionLabel,
 };
 use safeguard_audit_indexer::{DedupPolicy, InMemoryCheckpointStore, Indexer, MalformedItemPolicy};
-use safeguard_audit_investigation::{CaseService, InMemoryCaseStore};
+use safeguard_audit_investigation::{CaseService, InMemoryCaseStore, NewFinding};
 use safeguard_audit_memory_store::MemoryEventStore;
 use safeguard_audit_normalizer::{NormalizeConfig, Normalizer};
 use safeguard_audit_storage::{AuditQuery, EventStore};
@@ -95,8 +94,7 @@ fn main() {
         .join("..")
         .join("..")
         .join("fixtures/events/denied-transfer/event.json");
-    let payload = std::fs::read_to_string(&fixture)
-        .unwrap_or_else(|e| panic!("read fixture: {e}"));
+    let payload = std::fs::read_to_string(&fixture).unwrap_or_else(|e| panic!("read fixture: {e}"));
     let normalizer = Normalizer::new(NormalizeConfig::new(
         network.clone(),
         "safeguard-audit",
@@ -188,10 +186,12 @@ fn main() {
             &mut audit_store,
             &investigator,
             opened.case_id(),
-            safeguard_audit_core::FindingKind::Anomaly,
-            safeguard_audit_core::Severity::Medium,
-            "denials cluster around a single source account",
-            vec![denial_id.clone()],
+            NewFinding::new(
+                safeguard_audit_core::FindingKind::Anomaly,
+                safeguard_audit_core::Severity::Medium,
+                "denials cluster around a single source account",
+            )
+            .with_records(vec![denial_id.clone()]),
         )
         .expect("finding records");
 

@@ -226,10 +226,7 @@ impl CaseService {
         audit: &mut dyn EventStore,
         actor: &AuditorId,
         case_id: &CaseId,
-        kind: safeguard_audit_core::FindingKind,
-        severity: safeguard_audit_core::Severity,
-        summary: &str,
-        related_records: Vec<safeguard_audit_core::RecordId>,
+        finding: NewFinding<'_>,
     ) -> InvestigationResult<InvestigationCase> {
         self.require(actor, AccessAction::CreateInvestigation, "add a finding")?;
         let mut case = self.get_open(cases, case_id)?;
@@ -241,6 +238,12 @@ impl CaseService {
             case_id.as_str(),
             &format!("finding:{}", case.timeline().len()),
         ]);
+        let NewFinding {
+            kind,
+            severity,
+            summary,
+            related_records,
+        } = finding;
         let finding = safeguard_audit_core::Finding::new(
             finding_id,
             kind,
@@ -382,6 +385,41 @@ impl CaseService {
             audit,
         )?;
         Ok(case)
+    }
+}
+
+/// A finding to attach to a case: its content, validated at record time.
+#[derive(Debug, Clone)]
+pub struct NewFinding<'a> {
+    /// What the finding classifies as.
+    pub kind: safeguard_audit_core::FindingKind,
+    /// Severity of the finding.
+    pub severity: safeguard_audit_core::Severity,
+    /// Short bounded summary.
+    pub summary: &'a str,
+    /// Records supporting the finding.
+    pub related_records: Vec<safeguard_audit_core::RecordId>,
+}
+
+impl<'a> NewFinding<'a> {
+    /// A finding with no supporting records yet.
+    pub fn new(
+        kind: safeguard_audit_core::FindingKind,
+        severity: safeguard_audit_core::Severity,
+        summary: &'a str,
+    ) -> Self {
+        Self {
+            kind,
+            severity,
+            summary,
+            related_records: Vec::new(),
+        }
+    }
+
+    /// Adds supporting records.
+    pub fn with_records(mut self, records: Vec<safeguard_audit_core::RecordId>) -> Self {
+        self.related_records = records;
+        self
     }
 }
 
@@ -694,10 +732,11 @@ mod tests {
                 &mut audit,
                 &auditor("inv"),
                 opened.case_id(),
-                safeguard_audit_core::FindingKind::Anomaly,
-                safeguard_audit_core::Severity::High,
-                "repeated denials from the same account",
-                Vec::new(),
+                NewFinding::new(
+                    safeguard_audit_core::FindingKind::Anomaly,
+                    safeguard_audit_core::Severity::High,
+                    "repeated denials from the same account",
+                ),
             )
             .unwrap();
         assert_eq!(with_finding.findings().len(), 1);

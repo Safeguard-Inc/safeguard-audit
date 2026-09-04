@@ -526,7 +526,13 @@ fn invariant_lifecycle_steps_are_ordered_and_uniquely_identified() {
         .assign(&mut cases, &mut audit, &inv, &case_id, &inv)
         .unwrap();
     service
-        .add_note(&mut cases, &mut audit, &inv, &case_id, "checking counterparties")
+        .add_note(
+            &mut cases,
+            &mut audit,
+            &inv,
+            &case_id,
+            "checking counterparties",
+        )
         .unwrap();
     service
         .transition(

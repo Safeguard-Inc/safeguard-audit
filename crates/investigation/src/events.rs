@@ -94,6 +94,15 @@ fn parse_actor(raw: &str) -> InvestigationResult<safeguard_audit_core::AuditorId
         .map_err(|e| InvestigationError::Internal(format!("invalid actor id {raw}: {e}")))
 }
 
+// Test-only helper kept in the impl block above the tests.
+impl LifecycleStep {
+    #[cfg(test)]
+    fn with_summary_for_test(mut self) -> Self {
+        self.summary = Some("reviewing a denied transfer".to_owned());
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -217,14 +226,5 @@ mod tests {
         };
         assert!(record_step(&bad, crate::SOURCE_LABEL, parser, &clock, &mut store).is_err());
         assert!(store.is_empty());
-    }
-}
-
-// Test-only helper kept in the impl block for the tests above.
-impl LifecycleStep {
-    #[cfg(test)]
-    fn with_summary_for_test(mut self) -> Self {
-        self.summary = Some("reviewing a denied transfer".to_owned());
-        self
     }
 }

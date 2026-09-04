@@ -13,13 +13,12 @@ use safeguard_audit_core::{
     VersionLabel,
 };
 use safeguard_audit_indexer::{DedupPolicy, InMemoryCheckpointStore, Indexer, MalformedItemPolicy};
-use safeguard_audit_investigation::{CaseService, CaseStore, InMemoryCaseStore};
+use safeguard_audit_investigation::{CaseService, CaseStore, InMemoryCaseStore, NewFinding};
 use safeguard_audit_memory_store::MemoryEventStore;
 use safeguard_audit_normalizer::{NormalizeConfig, Normalizer};
 use safeguard_audit_storage::{AuditQuery, EventStore};
 
-const DENIED_FIXTURE: &str =
-    include_str!("../../../fixtures/events/denied-transfer/event.json");
+const DENIED_FIXTURE: &str = include_str!("../../../fixtures/events/denied-transfer/event.json");
 
 struct FixtureSource {
     items: Vec<RawEventItem>,
@@ -102,12 +101,7 @@ fn ingest_denial() -> (MemoryEventStore, safeguard_audit_core::RecordId) {
     let mut checkpoints = InMemoryCheckpointStore::new();
     let mut store = MemoryEventStore::new();
     let mut source = FixtureSource {
-        items: vec![RawEventItem::new(
-            "audit-envelope",
-            DENIED_FIXTURE,
-            "ledger:430",
-        )
-        .unwrap()],
+        items: vec![RawEventItem::new("audit-envelope", DENIED_FIXTURE, "ledger:430").unwrap()],
     };
     indexer
         .run_once(&mut source, &mut checkpoints, &mut store)
@@ -167,10 +161,7 @@ fn denied_transfer_becomes_a_case_with_a_verifiable_timeline() {
         )
         .unwrap();
     assert_eq!(linked.timeline().len(), 1);
-    assert_eq!(
-        linked.timeline()[0].record(),
-        Some(&denial_record)
-    );
+    assert_eq!(linked.timeline()[0].record(), Some(&denial_record));
 
     // 3. Assign, move to investigating, and record a finding.
     service
@@ -198,10 +189,12 @@ fn denied_transfer_becomes_a_case_with_a_verifiable_timeline() {
             &mut audit,
             &auditor("investigator-1"),
             &case_id,
-            safeguard_audit_core::FindingKind::Anomaly,
-            safeguard_audit_core::Severity::High,
-            "the same source account was denied three times",
-            vec![denial_record.clone()],
+            NewFinding::new(
+                safeguard_audit_core::FindingKind::Anomaly,
+                safeguard_audit_core::Severity::High,
+                "the same source account was denied three times",
+            )
+            .with_records(vec![denial_record.clone()]),
         )
         .unwrap();
     assert_eq!(with_finding.findings().len(), 1);
@@ -256,7 +249,7 @@ fn denied_transfer_becomes_a_case_with_a_verifiable_timeline() {
         .filter(|k| *k != EventKind::TransferDenied)
         .collect();
     assert_eq!(lifecycle[0], EventKind::InvestigationOpened);
-    assert!(lifecycle.iter().any(|k| *k == EventKind::InvestigationClosed));
+    assert!(lifecycle.contains(&EventKind::InvestigationClosed));
     // Every step after the first is an update, never a second open.
     assert_eq!(
         lifecycle

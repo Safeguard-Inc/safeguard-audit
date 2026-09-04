@@ -58,7 +58,7 @@ pub mod store;
 
 pub use errors::{InvestigationError, InvestigationResult};
 pub use events::{record_step, LifecycleStep};
-pub use service::CaseService;
+pub use service::{CaseService, NewFinding};
 pub use store::{CaseStore, InMemoryCaseStore};
 
 /// The crate's stable source label for lifecycle events it derives.
