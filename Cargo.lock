@@ -215,6 +215,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "safeguard-audit-reporting"
+version = "0.1.0"
+dependencies = [
+ "safeguard-audit-authorization",
+ "safeguard-audit-core",
+ "safeguard-audit-events",
+ "safeguard-audit-integrity",
+ "safeguard-audit-memory-store",
+ "safeguard-audit-storage",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "safeguard-audit-storage"
 version = "0.1.0"
 dependencies = [
