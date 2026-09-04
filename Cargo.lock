@@ -126,6 +126,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "safeguard-audit-integrity"
+version = "0.1.0"
+dependencies = [
+ "safeguard-audit-core",
+ "safeguard-audit-memory-store",
+ "safeguard-audit-storage",
+ "serde_json",
+ "sha2",
+ "thiserror",
+]
+
+[[package]]
 name = "safeguard-audit-memory-store"
 version = "0.1.0"
 dependencies = [

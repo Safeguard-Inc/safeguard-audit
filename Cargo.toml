@@ -5,6 +5,7 @@ members = [
     "crates/audit-events",
     "crates/event-indexer",
     "crates/event-normalizer",
+    "crates/integrity",
     "crates/storage",
     "crates/memory-store",
 ]
