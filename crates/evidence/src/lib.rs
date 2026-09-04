@@ -23,8 +23,8 @@
 //! ## What lives here
 //!
 //! * **builder** — [`EvidenceBuilder`]: authorizes the acting auditor,
-//!   fetches each named source record, *refuses to build over records
-//!   whose stored integrity does not verify* (a tampered source must not
+//!   fetches each named source record, refuses records whose stored
+//!   digest no longer matches their body (an altered source must not
 //!   become evidence), orders the set deterministically, and seals an
 //!   [`EvidencePackage`]: an artifact with a content digest plus an
 //!   artifact-linked integrity manifest over its source records.

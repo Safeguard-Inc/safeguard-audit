@@ -13,6 +13,8 @@ publish = false
 [dependencies]
 safeguard-audit-authorization = { path = "../authorization" }
 safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-events = { path = "../audit-events" }
+safeguard-audit-evidence = { path = "../evidence" }
 safeguard-audit-integrity = { path = "../integrity" }
 safeguard-audit-indexer = { path = "../event-indexer" }
 safeguard-audit-investigation = { path = "../investigation" }

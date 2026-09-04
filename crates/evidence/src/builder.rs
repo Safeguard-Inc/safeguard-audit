@@ -8,9 +8,11 @@
 //!    a silent pass;
 //! 2. **prove the sources exist** — every named record must be in the
 //!    audit store;
-//! 3. **prove the sources are intact** — every fetched record's stored
-//!    integrity is verified; evidence is never built over altered
-//!    records;
+//! 3. **prove the sources are intact** — a record carrying a stored
+//!    integrity block must still match its body; evidence is never built
+//!    over records whose stored digest no longer verifies. Records the
+//!    pipeline left unsealed are accepted with their digest recomputed
+//!    and captured in the manifest, so later alteration stays detectable;
 //! 4. **order deterministically** — the same record set always yields the
 //!    same artifact and manifest, whatever order the ids were given in.
 //!
@@ -26,9 +28,7 @@ use safeguard_audit_core::{
     EvidenceProvenance, NetworkId, RecordId, Timestamp, VersionLabel,
 };
 use safeguard_audit_events::EvidenceLifecycle;
-use safeguard_audit_integrity::{
-    build_manifest, hash_bytes, verify_all, ManifestOptions,
-};
+use safeguard_audit_integrity::{build_manifest, hash_bytes, record_digest, ManifestOptions};
 use safeguard_audit_storage::EventStore;
 
 use crate::errors::{EvidenceError, EvidenceResult};
@@ -232,23 +232,29 @@ impl EvidenceBuilder {
 
     /// Refuses to build over records whose stored integrity does not
     /// verify: an altered source must not become evidence.
+    ///
+    /// The pipeline seals history at *verification* time, so stored
+    /// records may legitimately carry no integrity block. A record with a
+    /// stored block must still match its body (a mismatch means it was
+    /// altered after sealing); a record without one is accepted and its
+    /// digest is recomputed and captured in the manifest at generation
+    /// time, so later alteration is detectable through the manifest
+    /// either way.
     fn require_intact(&self, records: &[safeguard_audit_core::AuditRecord]) -> EvidenceResult<()> {
-        let outcomes = verify_all(records).map_err(EvidenceError::from_integrity)?;
-        let failures: Vec<_> = outcomes
-            .iter()
-            .filter(|o| !o.status().is_verified())
-            .collect();
-        if failures.is_empty() {
-            return Ok(());
+        for record in records {
+            let Some(integrity) = &record.integrity else {
+                continue;
+            };
+            let recomputed =
+                record_digest(record).map_err(EvidenceError::from_integrity)?;
+            if recomputed != integrity.digest {
+                return Err(EvidenceError::TamperedSource(format!(
+                    "record {} carries a stored digest that no longer matches its body",
+                    record.record_id
+                )));
+            }
         }
-        let first = failures[0];
-        Err(EvidenceError::TamperedSource(format!(
-            "{} of {} source records failed verification (first: {} {})",
-            failures.len(),
-            records.len(),
-            first.record_id(),
-            first.status().as_str()
-        )))
+        Ok(())
     }
 }
 
@@ -434,11 +440,13 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn unsealed_records_are_refused() {
+    fn unsealed_records_build_with_their_digest_captured_in_the_manifest() {
         let aud = auditor("aud-1");
         let b = builder(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &aud));
-        // A record with no integrity block (never sealed by the integrity
-        // subsystem) cannot support evidence: there is nothing to verify.
+        // The pipeline seals history at verification time, so stored
+        // records may carry no integrity block. Such records are accepted;
+        // the manifest recomputes and captures each record's digest from
+        // its body, so later alteration is still detectable.
         let mut store = MemoryEventStore::new();
         let unsealed = AuditRecord::from_event_classified(
             AuditEvent::new(
@@ -453,8 +461,25 @@ pub(crate) mod tests {
         .unwrap();
         store.insert(unsealed).unwrap();
         let opts = options(EvidenceKind::TransactionEvidence, ids(&store, 1), &aud);
-        let err = b.build(&mut store, &opts).unwrap_err();
-        assert!(matches!(err, EvidenceError::TamperedSource(_)));
+        let package = b.build(&mut store, &opts).unwrap();
+        assert_eq!(package.manifest().record_count(), 1);
+        // The manifest entry digest equals a fresh recomputation from the
+        // stored body - the captured state, not a copied stored value.
+        let stored = store
+            .query(
+                &safeguard_audit_storage::AuditQuery::builder().build().unwrap(),
+                &safeguard_audit_core::PageRequest::new(10).unwrap(),
+            )
+            .unwrap();
+        let record = stored
+            .items()
+            .iter()
+            .find(|r| r.kind() == EventKind::TransferDenied)
+            .unwrap();
+        assert_eq!(
+            package.manifest().entries()[0].digest(),
+            &record_digest(record).unwrap()
+        );
     }
 
     #[test]

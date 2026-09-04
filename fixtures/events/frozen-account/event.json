@@ -13,5 +13,6 @@
   "ledger": { "network": "testnet", "sequence": 423, "close_time": 1700000400 },
   "transaction": { "network": "testnet", "hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef" },
   "token": { "network": "testnet", "contract": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000" },
-  "subject": { "network": "testnet", "account": "GAFROZENACCOUNTDEMO00000000000000000000000000000000000" }
+  "subject": { "network": "testnet", "account": "GAFROZENACCOUNTDEMO00000000000000000000000000000000000" },
+  "details": {}
 }
