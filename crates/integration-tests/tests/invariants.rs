@@ -679,13 +679,107 @@ fn invariant_evidence_packages_are_reproducible_and_tamper_evident() {
         serde_json::from_value(value).unwrap();
     assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)
         .unwrap()
-        .verified());
-
-    let mut value = serde_json::to_value(&first).unwrap();
-    value["manifest"]["entries"][1]["digest"]["value"] = serde_json::Value::String("dd".repeat(32));
+        .verified());    let mut value = serde_json::to_value(&first).unwrap();
+    value["manifest"]["entries"][1]["digest"]["value"] =
+        serde_json::Value::String("dd".repeat(32));
     let tampered: safeguard_audit_evidence::EvidencePackage =
         serde_json::from_value(value).unwrap();
     assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)
         .unwrap()
         .verified());
+}
+
+#[test]
+fn invariant_reports_are_reproducible_and_bounded() {
+    // The same store and the same request reproduce the identical report
+    // (same id, same digest, same content), and the classification
+    // ceiling is enforced: rows at or above the query's ceiling are
+    // excluded from a report body — a report never leaks protected data.
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
+    use safeguard_audit_core::{
+        AccessScope, AuditRecord, AuditorId, AuditorRole, AuditEvent, DataClassification,
+        EventKind, EventProvenance, FixedClock, NetworkId, OriginKind, ReportKind, ReportQuery,
+        ReportRequest, Timestamp, VersionLabel,
+    };
+    use safeguard_audit_memory_store::MemoryEventStore;
+    use safeguard_audit_reporting::ReportService;
+    use safeguard_audit_storage::InsertOutcome;
+
+    let net = NetworkId::new(NetworkId::TESTNET).unwrap();
+    let clock = FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000));
+    let parser = VersionLabel::new("1.0.0").unwrap();
+    let senior = AuditorId::derive(&["invariant-senior-2"]);
+    let mut registry = Registry::new();
+    registry
+        .register(
+            Grant::new(senior.clone(), AuditorRole::SeniorAuditor)
+                .with_scope(AccessScope::Network(net.clone()))
+                .with_credential(Credential::new(
+                    senior.clone(),
+                    "material",
+                    Timestamp::from_unix_seconds(9_999_999_999),
+                )),
+        )
+        .unwrap();
+
+    let mut store = MemoryEventStore::new();
+    for (seed, classification) in [
+        ("rep-a", DataClassification::Confidential),
+        ("rep-b", DataClassification::Restricted),
+    ] {
+        let event = AuditEvent::new(
+            safeguard_audit_core::EventId::derive(&[seed]),
+            EventKind::TransferDenied,
+            net.clone(),
+            EventProvenance::new(OriginKind::OnChain, "soroban", parser.clone()).unwrap(),
+        );
+        let record = AuditRecord::from_event_classified(event, classification, &clock).unwrap();
+        assert_eq!(store.insert(record), Ok(InsertOutcome::Inserted));
+    }
+
+    let service = ReportService::new(
+        net.clone(),
+        "safeguard-audit-reporting",
+        parser,
+        VersionLabel::new("0.5.0").unwrap(),
+        clock,
+        Authorizer::new(registry, clock),
+    );
+
+    // Reproducibility: two runs over fresh clones of the same store
+    // yield byte-identical reports with the same id and digest.
+    let query = ReportQuery::all();
+    let request = ReportRequest::new(
+        ReportKind::ComplianceActivity,
+        query.clone(),
+        senior.clone(),
+        Timestamp::from_unix_seconds(1_699_999_999),
+    );
+    let mut store_a = store.clone();
+    let mut store_b = store.clone();
+    let first = service.generate(&mut store_a, &request).unwrap();
+    let second = service.generate(&mut store_b, &request).unwrap();
+    assert_eq!(first, second);
+    assert_eq!(first.report_id(), second.report_id());
+    assert_eq!(first.digest(), second.digest());
+
+    // Bounded rows: the ceiling excludes records at or above it, so a
+    // restricted ceiling keeps the confidential record (1 covered, 1
+    // public row) and drops the restricted one.
+    let mut store_c = store.clone();
+    let ceiling_request = ReportRequest::new(
+        ReportKind::ComplianceActivity,
+        ReportQuery {
+            classification_ceiling: Some(DataClassification::Restricted),
+            ..query
+        },
+        senior.clone(),
+        Timestamp::from_unix_seconds(1_699_999_999),
+    );
+    let bounded = service.generate(&mut store_c, &ceiling_request).unwrap();
+    assert_eq!(
+        bounded.summary().total_records, 1,
+        "restricted records are excluded at a restricted ceiling"
+    );
+    assert_eq!(bounded.rows().len(), 1);
 }
