@@ -1,0 +1,11 @@
+{
+  "report_id": null,
+  "kind": "incidents",
+  "query": {
+    "time_range": { "start": 1700000000, "end": null },
+    "network": "testnet",
+    "outcome": "denied"
+  },
+  "requested_by": "aud_01010101010101010101010101010101",
+  "requested_at": 1700000699
+}

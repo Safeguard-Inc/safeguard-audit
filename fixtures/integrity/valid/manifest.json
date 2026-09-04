@@ -1,0 +1,23 @@
+{
+  "manifest_id": "mfst_1234567890abcdef1234567890abcdef",
+  "schema_version": 1,
+  "generated_at": 1700000600,
+  "software_version": "0.1.0",
+  "from_ledger": 420,
+  "to_ledger": 421,
+  "record_count": 2,
+  "entries": [
+    {
+      "record_id": "rec_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "digest": { "algorithm": "sha-256", "value": "5555555555555555555555555555555555555555555555555555555555555555" }
+    },
+    {
+      "record_id": "rec_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "digest": { "algorithm": "sha-256", "value": "6666666666666666666666666666666666666666666666666666666666666666" }
+    }
+  ],
+  "aggregate_digest": {
+    "algorithm": "sha-256",
+    "value": "7777777777777777777777777777777777777777777777777777777777777777"
+  }
+}

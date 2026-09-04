@@ -1,0 +1,7 @@
+{
+  "network": "testnet",
+  "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "ledger_sequence": 420,
+  "close_time": 1700000100,
+  "status": "succeeded"
+}

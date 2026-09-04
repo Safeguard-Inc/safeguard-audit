@@ -1,0 +1,22 @@
+{
+  "manifest_id": "mfst_1234567890abcdef1234567890abcdef",
+  "artifact": "evid_1234567890abcdef1234567890abcdef",
+  "schema_version": 1,
+  "generated_at": 1700000600,
+  "software_version": "0.2.0",
+  "parser_version": "1.0.0",
+  "network": "testnet",
+  "from_ledger": 420,
+  "to_ledger": 421,
+  "record_count": 1,
+  "entries": [
+    {
+      "record_id": "rec_abababababababababababababababab",
+      "digest": { "algorithm": "sha-256", "value": "3333333333333333333333333333333333333333333333333333333333333333" }
+    }
+  ],
+  "aggregate_digest": {
+    "algorithm": "sha-256",
+    "value": "8888888888888888888888888888888888888888888888888888888888888888"
+  }
+}

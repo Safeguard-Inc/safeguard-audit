@@ -1,0 +1,7 @@
+{
+  "network": "testnet",
+  "hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+  "ledger_sequence": 421,
+  "close_time": 1700000200,
+  "status": "failed"
+}

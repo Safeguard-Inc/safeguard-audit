@@ -1,0 +1,18 @@
+{
+  "evidence_id": "evid_1234567890abcdef1234567890abcdef",
+  "kind": "transaction-evidence",
+  "provenance": {
+    "source_records": ["rec_abcdefabcdefabcdefabcdefabcdefabcd"],
+    "source_events": ["evt_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+    "parser_version": "1.0.0",
+    "generator_version": "0.2.0"
+  },
+  "generated_at": 1700000500,
+  "generated_by": "aud_01010101010101010101010101010101",
+  "schema_version": 1,
+  "digest": {
+    "algorithm": "sha-256",
+    "value": "4444444444444444444444444444444444444444444444444444444444444444"
+  },
+  "manifest_id": "mfst_1234567890abcdef1234567890abcdef"
+}

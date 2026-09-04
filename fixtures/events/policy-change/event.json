@@ -1,0 +1,23 @@
+{
+  "event_id": "evt_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "kind": "policy-version-changed",
+  "schema_version": 1,
+  "network": "testnet",
+  "provenance": {
+    "origin": "derived",
+    "source": "safeguard-audit",
+    "parser_version": "1.0.0",
+    "derivation": {
+      "method": "policy-version-observed",
+      "source_events": [],
+      "note": "policy version rotation observed and recorded for historical correlation"
+    }
+  },
+  "order": {},
+  "details": {
+    "policy": "CPOLICYCONTRACTDEMO0000000000000000000000000000000000",
+    "from_version": "1.1.0",
+    "to_version": "1.2.0",
+    "digest": "2222222222222222222222222222222222222222222222222222222222222222"
+  }
+}

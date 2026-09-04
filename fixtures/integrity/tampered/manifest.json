@@ -1,0 +1,14 @@
+{
+  "manifest_id": "mfst_1234567890abcdef1234567890abcdef",
+  "schema_version": 1,
+  "generated_at": 1700000600,
+  "software_version": "0.1.0",
+  "record_count": 1,
+  "entries": [
+    {
+      "record_id": "rec_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "digest": { "algorithm": "md5", "value": "5555555555555555555555555555555555555555555555555555555555555555" }
+    }
+  ],
+  "aggregate_digest": null
+}

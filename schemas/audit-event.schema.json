@@ -123,9 +123,9 @@
       "required": ["network"],
       "properties": {
         "network": { "type": "string" },
-        "contract": { "type": ["object", "null"] },
+        "contract": { "type": ["string", "null"], "maxLength": 128 },
         "asset_code": { "type": ["string", "null"], "maxLength": 12 },
-        "issuer": { "type": ["object", "null"] }
+        "issuer": { "type": ["string", "null"], "maxLength": 128 }
       },
       "additionalProperties": false
     },

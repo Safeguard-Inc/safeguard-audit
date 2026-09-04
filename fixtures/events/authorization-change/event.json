@@ -1,0 +1,24 @@
+{
+  "event_id": "evt_ffffffffffffffffffffffffffffffff",
+  "kind": "authorization-changed",
+  "schema_version": 1,
+  "network": "testnet",
+  "provenance": {
+    "origin": "derived",
+    "source": "safeguard-audit-admin",
+    "parser_version": "1.0.0",
+    "derivation": {
+      "method": "authorization-change-recorded",
+      "source_events": [],
+      "note": "authorization grant or revocation recorded for the audit trail"
+    }
+  },
+  "order": {},
+  "details": {
+    "change": "revoked",
+    "role": "investigator",
+    "scope": "token:testnet:contract:CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+    "subject": "aud_01010101010101010101010101010101",
+    "actor": "aud_02020202020202020202020202020202"
+  }
+}

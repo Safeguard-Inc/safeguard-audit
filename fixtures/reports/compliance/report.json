@@ -1,0 +1,31 @@
+{
+  "report_id": "rep_1234567890abcdef1234567890abcdef",
+  "kind": "compliance-activity",
+  "generated_at": 1700000700,
+  "generated_by": "aud_01010101010101010101010101010101",
+  "schema_version": 1,
+  "query": {
+    "time_range": { "start": 1700000000, "end": 1700000700 },
+    "network": "testnet",
+    "tokens": [],
+    "event_kinds": [],
+    "account": null,
+    "classification_ceiling": "confidential"
+  },
+  "versions": {
+    "report_schema": 1,
+    "parser_version": "1.0.0",
+    "generator_version": "0.1.0"
+  },
+  "record_refs": ["abababababababababababababababababababababababababababababababab"],
+  "summary": {
+    "total_records": 1,
+    "by_outcome": { "denied": 1 },
+    "by_kind": { "transfer-denied": 1 },
+    "by_reason": { "POLICY_DENIED": 1 }
+  },
+  "digest": {
+    "algorithm": "sha-256",
+    "value": "9999999999999999999999999999999999999999999999999999999999999999"
+  }
+}

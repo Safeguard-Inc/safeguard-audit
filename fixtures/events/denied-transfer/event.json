@@ -1,0 +1,36 @@
+{
+  "event_id": "evt_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "kind": "transfer-denied",
+  "schema_version": 1,
+  "network": "testnet",
+  "provenance": {
+    "origin": "derived",
+    "source": "safeguard-audit",
+    "parser_version": "1.0.0",
+    "derivation": {
+      "method": "transaction-outcome-analysis",
+      "source_events": [],
+      "note": "denial reconstructed from the failed transaction; reverts discard events"
+    }
+  },
+  "observed_at": 1700000200,
+  "order": { "ledger_sequence": 421, "operation_index": 0, "event_index": null },
+  "transaction": { "network": "testnet", "hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd" },
+  "token": { "network": "testnet", "contract": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000" },
+  "actor": { "network": "testnet", "account": "GASENDERACCOUNTDEMO0000000000000000000000000000000000" },
+  "subject": { "network": "testnet", "account": "GCRECEIVERACCOUNTDEMO00000000000000000000000000000000" },
+  "decision": {
+    "policy": { "network": "testnet", "contract": "CPOLICYCONTRACTDEMO0000000000000000000000000000000000" },
+    "result": "denied",
+    "reason": "POLICY_DENIED",
+    "decided_at": 1700000199
+  },
+  "enforcement": {
+    "hook": "safeguard-hooks",
+    "hook_version": "0.4.0",
+    "result": "denied",
+    "reason": "POLICY_DENIED"
+  },
+  "outcome": "denied",
+  "reason": "POLICY_DENIED"
+}

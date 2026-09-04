@@ -1,0 +1,23 @@
+{
+  "event_id": "evt_cccccccccccccccccccccccccccccccc",
+  "kind": "transfer-flagged",
+  "schema_version": 1,
+  "network": "testnet",
+  "provenance": {
+    "origin": "derived",
+    "source": "safeguard-audit",
+    "parser_version": "1.0.0",
+    "derivation": {
+      "method": "sanctions-screening-result",
+      "source_events": [],
+      "note": "sanctions screening flagged the account; recorded for investigation"
+    }
+  },
+  "observed_at": 1700000300,
+  "order": { "ledger_sequence": 422, "operation_index": null, "event_index": null },
+  "token": { "network": "testnet", "contract": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000" },
+  "subject": { "network": "testnet", "account": "GASENDERACCOUNTDEMO0000000000000000000000000000000000" },
+  "outcome": "flagged",
+  "reason": "SANCTIONS_MATCH",
+  "details": { "flag": "sanctions", "rule": "ofac-list" }
+}

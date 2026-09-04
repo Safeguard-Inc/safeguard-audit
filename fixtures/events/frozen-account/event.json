@@ -1,0 +1,17 @@
+{
+  "event_id": "evt_dddddddddddddddddddddddddddddddd",
+  "kind": "account-frozen",
+  "schema_version": 1,
+  "network": "testnet",
+  "provenance": {
+    "origin": "on-chain",
+    "source": "safeguard-hooks",
+    "parser_version": "0.4.0"
+  },
+  "observed_at": 1700000400,
+  "order": { "ledger_sequence": 423, "operation_index": 2, "event_index": 0 },
+  "ledger": { "network": "testnet", "sequence": 423, "close_time": 1700000400 },
+  "transaction": { "network": "testnet", "hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef" },
+  "token": { "network": "testnet", "contract": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000" },
+  "subject": { "network": "testnet", "account": "GAFROZENACCOUNTDEMO00000000000000000000000000000000000" }
+}

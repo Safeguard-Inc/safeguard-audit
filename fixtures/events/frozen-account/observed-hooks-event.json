@@ -1,0 +1,10 @@
+{
+  "type": "account_frozen",
+  "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+  "account": "GAFROZENACCOUNTDEMO00000000000000000000000000000000000",
+  "ledger": 423,
+  "close_time": 1700000400,
+  "transaction_hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+  "operation_index": 2,
+  "event_index": 0
+}

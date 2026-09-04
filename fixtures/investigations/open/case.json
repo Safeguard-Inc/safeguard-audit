@@ -1,0 +1,34 @@
+{
+  "case_id": "case_1234567890abcdef1234567890abcdef",
+  "title": "flagged transfer review",
+  "status": "open",
+  "priority": "high",
+  "created_at": 1700000900,
+  "created_by": "aud_01010101010101010101010101010101",
+  "assigned_to": "aud_02020202020202020202020202020202",
+  "related": {
+    "records": ["rec_abababababababababababababababab"]
+  },
+  "timeline": [
+    {
+      "at": 1700000300,
+      "kind": "denial",
+      "actor": null,
+      "record": "rec_abababababababababababababababab",
+      "provenance": "audit-record",
+      "detail": "policy denied transfer"
+    },
+    {
+      "at": 1700000900,
+      "kind": "status-changed",
+      "actor": "aud_01010101010101010101010101010101",
+      "record": null,
+      "provenance": "auditor-action",
+      "detail": "open"
+    }
+  ],
+  "findings": [],
+  "notes": [],
+  "closed_at": null,
+  "closed_reason": null
+}
