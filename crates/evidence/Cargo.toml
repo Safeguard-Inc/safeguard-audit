@@ -1,0 +1,24 @@
+[package]
+name = "safeguard-audit-evidence"
+description = "Evidence services for the Safeguard audit layer: building provenance-tracked, integrity-sealed evidence packages from verified audit records, and verifying them (artifact digest, manifest aggregate, per-record digests)."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-authorization = { path = "../authorization" }
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-events = { path = "../audit-events" }
+safeguard-audit-integrity = { path = "../integrity" }
+safeguard-audit-storage = { path = "../storage" }
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+safeguard-audit-memory-store = { path = "../memory-store" }
+serde_json.workspace = true

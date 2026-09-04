@@ -6,6 +6,7 @@ members = [
     "crates/authorization",
     "crates/event-indexer",
     "crates/event-normalizer",
+    "crates/evidence",
     "crates/integration-tests",
     "crates/integrity",
     "crates/investigation",
