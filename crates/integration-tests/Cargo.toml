@@ -1,0 +1,20 @@
+[package]
+name = "safeguard-audit-integration-tests"
+description = "End-to-end integration tests for the Safeguard audit pipeline: raw sources through normalization, indexing, storage, replay, and integrity verification."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-integrity = { path = "../integrity" }
+safeguard-audit-indexer = { path = "../event-indexer" }
+safeguard-audit-memory-store = { path = "../memory-store" }
+safeguard-audit-normalizer = { path = "../event-normalizer" }
+safeguard-audit-storage = { path = "../storage" }
+serde_json.workspace = true
