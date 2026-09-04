@@ -147,6 +147,21 @@ pub fn access_recorded_event(
     if let Some(target) = entry.target() {
         event.details.insert("target".into(), target.to_owned());
     }
+    // Attribution: the persisted record must answer *who* accessed and
+    // *when*, not hide them behind the derived event id. The auditor id is
+    // deliberately the `aud_...` reference, never credential material.
+    event
+        .details
+        .insert("auditor".into(), entry.auditor().as_str().to_owned());
+    event.details.insert(
+        "accessed_at".into(),
+        entry.accessed_at().as_unix_seconds().to_string(),
+    );
+    if let Some(classification) = entry.classification() {
+        event
+            .details
+            .insert("classification".into(), classification.as_str().to_owned());
+    }
     Ok(event)
 }
 

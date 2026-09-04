@@ -378,6 +378,12 @@ impl AuditAccessEntry {
     pub fn accessed_at(&self) -> Timestamp {
         self.accessed_at
     }
+
+    /// The highest classification touched, when the access involved
+    /// protected data.
+    pub fn classification(&self) -> Option<DataClassification> {
+        self.classification
+    }
 }
 
 /// Validates that a scope description is safe to log (bounded, printable).
