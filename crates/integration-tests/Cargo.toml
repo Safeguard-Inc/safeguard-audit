@@ -11,6 +11,7 @@ categories.workspace = true
 publish = false
 
 [dependencies]
+safeguard-audit-authorization = { path = "../authorization" }
 safeguard-audit-core = { path = "../audit-core" }
 safeguard-audit-integrity = { path = "../integrity" }
 safeguard-audit-indexer = { path = "../event-indexer" }
