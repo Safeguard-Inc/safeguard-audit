@@ -26,10 +26,12 @@
 //! integrity (manifests shipped with packages), and never claims
 //! otherwise.
 
+pub mod chain;
 pub mod digest;
 pub mod errors;
 pub mod hashing;
 
+pub use chain::{chain_step, seal_chain, verify_chain};
 pub use digest::{record_digest, seal_standalone};
 pub use errors::{IntegrityError, IntegrityResult};
 pub use hashing::{canonical_record_input, hash_bytes};
