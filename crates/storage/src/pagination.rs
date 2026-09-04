@@ -17,8 +17,10 @@ use safeguard_audit_core::{AuditError, AuditRecord, Cursor, RecordId};
 /// Ordering follows on-chain metadata first (ledger sequence, operation
 /// index, event index) and falls back to recording time and record id only
 /// when on-chain placement is absent or equal — arrival order never
-/// dominates history order.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+/// dominates history order. Records without on-chain placement order
+/// *after* placed records: an explicitly unknown position is an
+/// uncertainty band at the end of history, never an interleaving guess.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PositionKey {
     /// Ledger sequence, or `None` for events without on-chain placement.
     pub ledger: Option<i64>,
@@ -30,6 +32,33 @@ pub struct PositionKey {
     pub recorded_at: i64,
     /// Deterministic record id (final tiebreaker).
     pub record_id: RecordId,
+}
+
+/// Compares two `Option`s with `None` ordering *after* any value — the
+/// uncertainty-band rule for every placement component.
+fn cmp_unknown_last<T: Ord>(a: &Option<T>, b: &Option<T>) -> std::cmp::Ordering {
+    match (a, b) {
+        (Some(x), Some(y)) => x.cmp(y),
+        (Some(_), None) => std::cmp::Ordering::Less,
+        (None, Some(_)) => std::cmp::Ordering::Greater,
+        (None, None) => std::cmp::Ordering::Equal,
+    }
+}
+
+impl PartialOrd for PositionKey {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for PositionKey {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        cmp_unknown_last(&self.ledger, &other.ledger)
+            .then_with(|| cmp_unknown_last(&self.operation, &other.operation))
+            .then_with(|| cmp_unknown_last(&self.event, &other.event))
+            .then_with(|| self.recorded_at.cmp(&other.recorded_at))
+            .then_with(|| self.record_id.cmp(&other.record_id))
+    }
 }
 
 impl PositionKey {
