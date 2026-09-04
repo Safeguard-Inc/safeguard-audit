@@ -168,6 +168,7 @@ dependencies = [
 name = "safeguard-audit-investigation"
 version = "0.1.0"
 dependencies = [
+ "safeguard-audit-authorization",
  "safeguard-audit-core",
  "safeguard-audit-events",
  "safeguard-audit-memory-store",
