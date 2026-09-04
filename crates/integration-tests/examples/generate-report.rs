@@ -158,7 +158,12 @@ fn main() {
         report.report_id(),
         report.kind().as_str(),
         report.summary().total_records,
-        report.summary().by_outcome.get(&DecisionResult::Denied).copied().unwrap_or(0),
+        report
+            .summary()
+            .by_outcome
+            .get(&DecisionResult::Denied)
+            .copied()
+            .unwrap_or(0),
         report.rows().len(),
         report.digest().map(|d| d.value()).unwrap_or("-")
     );
@@ -177,15 +182,28 @@ fn main() {
         .expect("the generation is recorded");
     println!(
         "Recorded report-generated event (kind {}, records {})",
-        generation.event.details.get("kind").map(String::as_str).unwrap_or("?"),
-        generation.event.details.get("records").map(String::as_str).unwrap_or("?")
+        generation
+            .event
+            .details
+            .get("kind")
+            .map(String::as_str)
+            .unwrap_or("?"),
+        generation
+            .event
+            .details
+            .get("records")
+            .map(String::as_str)
+            .unwrap_or("?")
     );
 
     // --- The same request reproduces the identical report. ------------
     let reproduced = service
         .generate(&mut audit_store, &request)
         .expect("report reproduces");
-    assert_eq!(report, reproduced, "same request reproduces the identical report");
+    assert_eq!(
+        report, reproduced,
+        "same request reproduces the identical report"
+    );
     println!(
         "Reproduced identical report {} (digest {}).",
         reproduced.report_id(),

@@ -20,7 +20,8 @@ use safeguard_audit_reporting::ReportService;
 use safeguard_audit_storage::{AuditQuery, EventStore};
 
 const DENIED_FIXTURE: &str = include_str!("../../../fixtures/events/denied-transfer/event.json");
-const APPROVED_FIXTURE: &str = include_str!("../../../fixtures/events/approved-transfer/event.json");
+const APPROVED_FIXTURE: &str =
+    include_str!("../../../fixtures/events/approved-transfer/event.json");
 const FROZEN_FIXTURE: &str = include_str!("../../../fixtures/events/frozen-account/event.json");
 
 struct FixtureSource {
@@ -199,10 +200,7 @@ fn compliance_activity_report_counts_the_whole_range() {
     let report = service.generate(&mut audit, &request).unwrap();
     assert_eq!(report.summary().total_records, 3);
     assert_eq!(report.rows().len(), 3);
-    assert_eq!(
-        report.summary().by_kind[&EventKind::AccountFrozen],
-        1
-    );
+    assert_eq!(report.summary().by_kind[&EventKind::AccountFrozen], 1);
 }
 
 #[test]

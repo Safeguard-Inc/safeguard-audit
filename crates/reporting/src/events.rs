@@ -25,9 +25,8 @@ pub fn record_report(
     let event = lifecycle
         .into_audit_event(EventSlot::default())
         .map_err(|e| ReportingError::EventRecord(e.to_string()))?;
-    let record =
-        AuditRecord::from_event_classified(event, DataClassification::Confidential, clock)
-            .map_err(|e| ReportingError::EventRecord(e.to_string()))?;
+    let record = AuditRecord::from_event_classified(event, DataClassification::Confidential, clock)
+        .map_err(|e| ReportingError::EventRecord(e.to_string()))?;
     match store.insert(record) {
         Ok(InsertOutcome::Inserted) | Ok(InsertOutcome::Duplicate) => Ok(()),
         Err(e) => Err(ReportingError::EventRecord(e.to_string())),

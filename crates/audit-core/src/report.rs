@@ -438,7 +438,10 @@ mod tests {
         let sealed = report.clone().with_digest(digest);
         // Sealing never changes the canonical content: the digest is
         // attached after content hashing, not part of it.
-        assert_eq!(report.canonical_bytes().unwrap(), sealed.canonical_bytes().unwrap());
+        assert_eq!(
+            report.canonical_bytes().unwrap(),
+            sealed.canonical_bytes().unwrap()
+        );
         // And content bytes are deterministic.
         assert_eq!(
             report.canonical_bytes().unwrap(),

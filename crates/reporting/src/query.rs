@@ -74,21 +74,29 @@ mod tests {
             tokens: vec![],
             event_kinds: vec![EventKind::TransferDenied],
             outcome: Some(DecisionResult::Denied),
-            account: Some(safeguard_audit_core::AccountId::new(
-                "GACCOUNT12345678901234567890123456789012345678901234",
-            )
-            .unwrap()),
+            account: Some(
+                safeguard_audit_core::AccountId::new(
+                    "GACCOUNT12345678901234567890123456789012345678901234",
+                )
+                .unwrap(),
+            ),
             classification_ceiling: None,
         };
         let mapped = to_audit_query(&query).unwrap();
         assert_eq!(mapped.network().unwrap().as_str(), "testnet");
-        assert_eq!(mapped.sort(), safeguard_audit_storage::SortDirection::Ascending);
+        assert_eq!(
+            mapped.sort(),
+            safeguard_audit_storage::SortDirection::Ascending
+        );
     }
 
     #[test]
     fn mapping_is_deterministic() {
         let query = ReportQuery::with_outcome(DecisionResult::Denied);
-        assert_eq!(to_audit_query(&query).unwrap(), to_audit_query(&query).unwrap());
+        assert_eq!(
+            to_audit_query(&query).unwrap(),
+            to_audit_query(&query).unwrap()
+        );
     }
 
     #[test]
@@ -104,8 +112,7 @@ mod tests {
     fn inverted_time_ranges_are_rejected() {
         // Wire queries deserialize through serde, bypassing TimeRange::new;
         // the mapping must not let an inverted range reach the store.
-        let wire: TimeRange =
-            serde_json::from_str(r#"{"start": 200, "end": 100}"#).unwrap();
+        let wire: TimeRange = serde_json::from_str(r#"{"start": 200, "end": 100}"#).unwrap();
         let query = ReportQuery {
             time_range: Some(wire),
             ..ReportQuery::all()
@@ -121,17 +128,11 @@ mod tests {
             tokens: vec![
                 safeguard_audit_core::TokenReference::for_contract(
                     safeguard_audit_core::NetworkId::new(NetworkId::TESTNET).unwrap(),
-                    safeguard_audit_core::ContractId::new(
-                        &format!("C{}", "A".repeat(55)),
-                    )
-                    .unwrap(),
+                    safeguard_audit_core::ContractId::new(&format!("C{}", "A".repeat(55))).unwrap(),
                 ),
                 safeguard_audit_core::TokenReference::for_contract(
                     safeguard_audit_core::NetworkId::new(NetworkId::TESTNET).unwrap(),
-                    safeguard_audit_core::ContractId::new(
-                        &format!("C{}", "B".repeat(55)),
-                    )
-                    .unwrap(),
+                    safeguard_audit_core::ContractId::new(&format!("C{}", "B".repeat(55))).unwrap(),
                 ),
             ],
             ..ReportQuery::all()

@@ -75,8 +75,7 @@ fn every_vector_maps_as_declared() {
     for (path, vector) in &vectors {
         let name = path.file_name().unwrap().to_string_lossy();
         assert_eq!(
-            vector.scheme,
-            "report-query-mapping",
+            vector.scheme, "report-query-mapping",
             "{name} must declare scheme report-query-mapping"
         );
         let mapped = to_audit_query(&vector.query);
