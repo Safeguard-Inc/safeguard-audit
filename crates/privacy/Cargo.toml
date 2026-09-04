@@ -1,0 +1,17 @@
+[package]
+name = "safeguard-audit-privacy"
+description = "Privacy enforcement for the Safeguard audit layer: deterministic, marker-based redaction of protected detail values and record-level disclosure views driven by the core classification vocabulary, applied before anything is exported, reported, or displayed."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+
+[dev-dependencies]
+serde_json.workspace = true

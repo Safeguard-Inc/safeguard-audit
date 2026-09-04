@@ -216,6 +216,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "safeguard-audit-privacy"
+version = "0.1.0"
+dependencies = [
+ "safeguard-audit-core",
+ "serde_json",
+]
+
+[[package]]
 name = "safeguard-audit-reporting"
 version = "0.1.0"
 dependencies = [
