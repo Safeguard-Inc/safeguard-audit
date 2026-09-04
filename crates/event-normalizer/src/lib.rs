@@ -34,11 +34,14 @@
 //! [`AuditEvent`]: safeguard_audit_core::AuditEvent
 //! [`EventSource`]: safeguard_audit_core::EventSource
 
+pub mod classifier;
 pub mod errors;
+pub mod metadata;
 pub mod parser;
 pub mod scheme;
 pub mod validator;
 
+pub use classifier::{classify, NormalizeConfig};
 pub use errors::{NormalizerError, NormalizerResult};
 pub use parser::{parse, HooksType, ParsedEvent, RawEnvelope, RawHooksEvent};
 pub use scheme::Scheme;
