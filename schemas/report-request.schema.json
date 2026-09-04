@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReportRequest",
+  "description": "What an authorized caller asked a report generator for. Requests are validated, attributable, and captured inside the resulting report as its query configuration so requests and reports can never drift.",
+  "type": "object",
+  "required": ["kind", "query", "requested_by", "requested_at"],
+  "properties": {
+    "report_id": { "type": ["string", "null"], "pattern": "^rep_[0-9a-f]{32}$" },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "compliance-activity",
+        "approved-transactions",
+        "denied-transactions",
+        "flagged-transactions",
+        "enforcement-activity",
+        "account-activity",
+        "token-activity",
+        "investigations",
+        "incidents",
+        "evidence-summary",
+        "integrity-verification"
+      ]
+    },
+    "query": { "type": "object" },
+    "requested_by": { "type": "string", "pattern": "^aud_[0-9a-f]{32}$" },
+    "requested_at": { "type": "integer" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Authorization",
+  "description": "An authorization decision and the audit-access entry derived from it. Decisions are attributable (who, when, which action and scope label) so protected-data access can always be traced. Scope is the stable describe() label, not free text.",
+  "type": "object",
+  "required": ["allowed", "action", "scope", "decided_at"],
+  "properties": {
+    "allowed": { "type": "boolean" },
+    "action": {
+      "type": "string",
+      "enum": [
+        "read-record",
+        "query",
+        "inspect-transaction",
+        "inspect-policy",
+        "inspect-denied",
+        "create-investigation",
+        "view-investigation",
+        "generate-evidence",
+        "generate-report",
+        "export-records",
+        "request-protected-data",
+        "verify-integrity"
+      ]
+    },
+    "scope": { "type": "string", "maxLength": 256 },
+    "reason": { "type": ["string", "null"], "maxLength": 64 },
+    "decided_by": { "type": ["string", "null"] },
+    "decided_at": { "type": "integer", "description": "UTC Unix seconds." }
+  },
+  "additionalProperties": false
+}

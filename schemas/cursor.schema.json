@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cursor",
+  "description": "An opaque, stable pagination position. Cursors point at a record (never a count), stay valid as history grows, and are limited to URL-safe printable ASCII. Stores own the concrete encoding.",
+  "type": "object",
+  "required": ["cursor", "limit"],
+  "properties": {
+    "cursor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_\\-.~:/+=|]+$"
+    },
+    "limit": { "type": "integer", "minimum": 1, "maximum": 1000 }
+  },
+  "additionalProperties": false
+}

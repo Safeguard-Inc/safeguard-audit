@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Export",
+  "description": "An export envelope: what was exported, in which format, over which source range, with explicit provenance marking (raw source vs normalized audit data vs derived fields) and redaction marking. Exports never silently omit sensitive data — redacted fields are marked, never dropped without a trace.",
+  "type": "object",
+  "required": ["schema_version", "format", "generated_at", "record_count", "rows"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "format": { "type": "string", "enum": ["json", "ndjson", "csv"] },
+    "generated_at": { "type": "integer" },
+    "network": { "type": ["string", "null"], "pattern": "^[a-z0-9-]{1,32}$" },
+    "from_ledger": { "type": ["integer", "null"], "minimum": 1 },
+    "to_ledger": { "type": ["integer", "null"], "minimum": 1 },
+    "record_count": { "type": "integer", "minimum": 0 },
+    "row_kind": {
+      "type": "string",
+      "enum": ["raw-source", "normalized-audit", "derived", "redacted"],
+      "description": "Explicit provenance marking for the rows in this export."
+    },
+    "redacted_fields": {
+      "type": "array",
+      "description": "Fields that were redacted, named explicitly.",
+      "items": { "type": "string" }
+    },
+    "rows": { "type": "array", "items": { "type": "object" } },
+    "manifest": { "type": ["object", "null"] }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Investigation",
+  "description": "A compliance investigation case: status lifecycle with validated transitions, priority, assignment, related audit references, findings, notes, and a deterministic timeline. Every timeline entry carries a time and provenance; timestamps are never invented. A focused case model, not an enterprise case-management product.",
+  "type": "object",
+  "required": ["case_id", "title", "status", "priority", "created_at", "created_by", "timeline"],
+  "properties": {
+    "case_id": { "type": "string", "pattern": "^case_[0-9a-f]{32}$" },
+    "title": { "type": "string", "maxLength": 200 },
+    "status": { "type": "string", "enum": ["open", "investigating", "escalated", "resolved", "closed"] },
+    "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "created_at": { "type": "integer" },
+    "created_by": { "type": "string" },
+    "assigned_to": { "type": ["string", "null"] },
+    "related": { "type": "object" },
+    "timeline": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/timeline_entry" }
+    },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["note_id", "author", "body", "created_at"],
+        "properties": {
+          "note_id": { "type": "string" },
+          "author": { "type": "string" },
+          "body": { "type": "string", "maxLength": 4096 },
+          "created_at": { "type": "integer" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "closed_at": { "type": ["integer", "null"] },
+    "closed_reason": { "type": ["string", "null"], "maxLength": 512 }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "timeline_entry": {
+      "type": "object",
+      "required": ["at", "kind", "provenance"],
+      "properties": {
+        "at": { "type": "integer", "description": "Ledger time for on-chain entries, auditor clock time for audit-layer entries." },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "transaction-observed",
+            "policy-decision",
+            "enforcement-decision",
+            "account-frozen",
+            "denial",
+            "authorization-change",
+            "auditor-access",
+            "evidence-generated",
+            "finding-added",
+            "status-changed",
+            "note-added"
+          ]
+        },
+        "actor": { "type": ["string", "null"] },
+        "record": { "type": ["string", "null"] },
+        "provenance": { "type": "string", "maxLength": 64 },
+        "detail": { "type": ["string", "null"], "maxLength": 512 }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["finding_id", "kind", "severity", "summary", "created_at", "created_by"],
+      "properties": {
+        "finding_id": { "type": "string", "pattern": "^find_[0-9a-f]{32}$" },
+        "kind": { "type": "string", "enum": ["policy-verdict", "enforcement-verdict", "anomaly", "pattern", "integrity"] },
+        "severity": { "type": "string", "enum": ["info", "low", "medium", "high", "critical"] },
+        "summary": { "type": "string", "maxLength": 512 },
+        "related_records": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "integer" },
+        "created_by": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

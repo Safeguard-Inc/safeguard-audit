@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence",
+  "description": "A generated evidence artifact. Evidence must name its sources (records/events) plus the parser and generator versions that produced it — evidence with no named source is rejected — and carries digest/manifest slots for independent integrity checking.",
+  "type": "object",
+  "required": ["evidence_id", "kind", "provenance", "generated_at", "schema_version"],
+  "properties": {
+    "evidence_id": { "type": "string", "pattern": "^evid_[0-9a-f]{32}$" },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "transaction-evidence",
+        "compliance-decision-evidence",
+        "enforcement-evidence",
+        "investigation-evidence",
+        "historical-activity-evidence",
+        "integrity-evidence"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source_records", "parser_version", "generator_version"],
+      "properties": {
+        "source_records": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "source_events": { "type": "array", "items": { "type": "string" } },
+        "parser_version": { "type": "string", "maxLength": 32 },
+        "generator_version": { "type": "string", "maxLength": 32 }
+      },
+      "additionalProperties": false
+    },
+    "generated_at": { "type": "integer" },
+    "generated_by": { "type": ["string", "null"] },
+    "schema_version": { "type": "integer", "const": 1 },
+    "digest": {
+      "type": ["object", "null"],
+      "properties": {
+        "algorithm": { "type": "string", "enum": ["sha-256"] },
+        "value": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "manifest_id": { "type": ["string", "null"] }
+  },
+  "additionalProperties": false
+}

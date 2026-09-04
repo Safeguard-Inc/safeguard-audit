@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IntegrityManifest",
+  "description": "The digest inventory of a record range, evidence package, or export. A verifier given the manifest and the covered records can determine whether anything was altered after generation. Tamper-evidence for locally stored and exported records — not a claim of blockchain-level immutability.",
+  "type": "object",
+  "required": ["manifest_id", "schema_version", "generated_at", "software_version", "record_count", "entries"],
+  "properties": {
+    "manifest_id": { "type": "string", "pattern": "^mfst_[0-9a-f]{32}$" },
+    "schema_version": { "type": "integer", "const": 1 },
+    "generated_at": { "type": "integer" },
+    "software_version": { "type": "string", "maxLength": 32 },
+    "from_ledger": { "type": ["integer", "null"], "minimum": 1 },
+    "to_ledger": { "type": ["integer", "null"], "minimum": 1 },
+    "record_count": { "type": "integer", "minimum": 0 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["record_id", "digest"],
+        "properties": {
+          "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{32}$" },
+          "digest": { "$ref": "#/$defs/digest" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "aggregate_digest": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "type": "string", "enum": ["sha-256"] },
+        "value": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

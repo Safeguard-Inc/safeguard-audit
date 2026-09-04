@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Report",
+  "description": "A reproducible report: it names its kind, the exact query configuration it was generated from, generator/parser versions, and count-only summaries. Report bodies carry public transaction references only — never rows of protected data. The captured query is the reproducibility record.",
+  "type": "object",
+  "required": ["report_id", "kind", "generated_at", "schema_version", "query", "versions", "summary"],
+  "properties": {
+    "report_id": { "type": "string", "pattern": "^rep_[0-9a-f]{32}$" },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "compliance-activity",
+        "approved-transactions",
+        "denied-transactions",
+        "flagged-transactions",
+        "enforcement-activity",
+        "account-activity",
+        "token-activity",
+        "investigations",
+        "incidents",
+        "evidence-summary",
+        "integrity-verification"
+      ]
+    },
+    "generated_at": { "type": "integer" },
+    "generated_by": { "type": ["string", "null"] },
+    "schema_version": { "type": "integer", "const": 1 },
+    "query": { "$ref": "#/$defs/report_query" },
+    "versions": {
+      "type": "object",
+      "required": ["report_schema", "parser_version", "generator_version"],
+      "properties": {
+        "report_schema": { "type": "integer", "const": 1 },
+        "parser_version": { "type": "string", "maxLength": 32 },
+        "generator_version": { "type": "string", "maxLength": 32 }
+      },
+      "additionalProperties": false
+    },
+    "record_refs": {
+      "type": "array",
+      "description": "Public transaction references in the report body.",
+      "items": { "type": "string" }
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total_records": { "type": "integer", "minimum": 0 },
+        "by_outcome": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "by_kind": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "by_reason": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "digest": {
+      "type": ["object", "null"],
+      "properties": {
+        "algorithm": { "type": "string", "enum": ["sha-256"] },
+        "value": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "report_query": {
+      "type": "object",
+      "properties": {
+        "time_range": {
+          "type": ["object", "null"],
+          "properties": {
+            "start": { "type": ["integer", "null"] },
+            "end": { "type": ["integer", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "network": { "type": ["string", "null"], "pattern": "^[a-z0-9-]{1,32}$" },
+        "tokens": { "type": "array", "items": { "type": "object" } },
+        "event_kinds": { "type": "array", "items": { "type": "string" } },
+        "outcome": { "type": ["string", "null"], "enum": ["allowed", "denied", "flagged"] },
+        "account": { "type": ["string", "null"], "maxLength": 128 },
+        "classification_ceiling": {
+          "type": ["string", "null"],
+          "enum": ["public", "operational", "confidential", "restricted", "highly-restricted"]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

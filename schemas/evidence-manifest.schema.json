@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceManifest",
+  "description": "The manifest shipped with an exported evidence package: artifact identity, source range, record count, per-record digests, aggregate digest, and the software/parser versions that produced the package, so an exported package can be independently integrity-checked.",
+  "type": "object",
+  "required": ["manifest_id", "artifact", "schema_version", "generated_at", "software_version", "record_count"],
+  "properties": {
+    "manifest_id": { "type": "string", "pattern": "^mfst_[0-9a-f]{32}$" },
+    "artifact": { "type": "string", "description": "The evidence artifact id this manifest covers." },
+    "schema_version": { "type": "integer", "const": 1 },
+    "generated_at": { "type": "integer" },
+    "software_version": { "type": "string", "maxLength": 32 },
+    "parser_version": { "type": ["string", "null"], "maxLength": 32 },
+    "network": { "type": ["string", "null"], "pattern": "^[a-z0-9-]{1,32}$" },
+    "from_ledger": { "type": ["integer", "null"], "minimum": 1 },
+    "to_ledger": { "type": ["integer", "null"], "minimum": 1 },
+    "record_count": { "type": "integer", "minimum": 0 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["record_id", "digest"],
+        "properties": {
+          "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{32}$" },
+          "digest": {
+            "type": "object",
+            "required": ["algorithm", "value"],
+            "properties": {
+              "algorithm": { "type": "string", "enum": ["sha-256"] },
+              "value": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "aggregate_digest": { "type": ["object", "null"] }
+  },
+  "additionalProperties": false
+}

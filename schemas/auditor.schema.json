@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Auditor",
+  "description": "An auditor identity: who is acting and which role they hold. Identities are references, never credentials — credential material is never part of this schema or any audit record.",
+  "type": "object",
+  "required": ["auditor_id", "role"],
+  "properties": {
+    "auditor_id": { "type": "string", "pattern": "^aud_[0-9a-f]{32}$" },
+    "role": {
+      "type": "string",
+      "enum": ["read-only-reviewer", "auditor", "senior-auditor", "investigator", "compliance-officer", "administrator"]
+    }
+  },
+  "additionalProperties": false
+}
