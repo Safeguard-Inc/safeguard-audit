@@ -26,6 +26,7 @@
 pub mod audit;
 pub mod authorization;
 pub mod correlation;
+pub mod decryption;
 pub mod errors;
 pub mod event;
 pub mod evidence;
@@ -50,6 +51,9 @@ pub use correlation::{
     AccountReference, ContractReference, DecisionResult, EnforcementResultReference,
     LedgerReference, OperationReference, PolicyDecisionReference, PolicyReference, TokenReference,
     TransactionReference, VersionLabel,
+};
+pub use decryption::{
+    DecryptionError, DecryptionProvider, DecryptionRequest, DecryptionResponse, DecryptionResult,
 };
 pub use errors::{AuditError, AuditResult};
 pub use event::{AuditEvent, DerivationInfo, EventKind, EventOrder, EventProvenance, OriginKind};
