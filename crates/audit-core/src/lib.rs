@@ -50,10 +50,10 @@ pub use correlation::{
     LedgerReference, OperationReference, PolicyDecisionReference, PolicyReference, TokenReference,
     TransactionReference, VersionLabel,
 };
-pub use errors::AuditError;
+pub use errors::{AuditError, AuditResult};
 pub use event::{AuditEvent, DerivationInfo, EventKind, EventOrder, EventProvenance, OriginKind};
 pub use evidence::{EvidenceArtifact, EvidenceKind, EvidenceProvenance};
-pub use identifiers::EventId;
+pub use identifiers::{AccountId, ContractId, EventId, NetworkId, ReasonCode, TransactionHash};
 pub use integrity::{
     IntegrityDigest, IntegrityManifest, IntegrityScheme, IntegrityStatus, ManifestEntry,
     VerificationFailure, VerificationOutcome,

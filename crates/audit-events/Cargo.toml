@@ -1,0 +1,17 @@
+[package]
+name = "safeguard-audit-events"
+description = "Semantic event types for the Safeguard audit layer: source-shaped compliance/state events and derived audit events that project onto the normalized audit-core envelope."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
