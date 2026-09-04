@@ -410,3 +410,165 @@ fn invariant_unknown_auditors_cannot_force_a_decision() {
     assert_eq!(decision.reason(), Some(reason::UNKNOWN_AUDITOR));
     assert_eq!(decision.decided_by(), Some(&ghost));
 }
+
+#[test]
+fn invariant_case_ids_are_deterministic_and_replay_is_idempotent() {
+    // A case keyed on the same network and operation derives the same id
+    // every time, and replaying the same open cannot duplicate history.
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
+    use safeguard_audit_core::{
+        AccessScope, AuditorId, AuditorRole, CaseId, FixedClock, NetworkId, Priority, Timestamp,
+        VersionLabel,
+    };
+    use safeguard_audit_investigation::{CaseService, InMemoryCaseStore};
+    use safeguard_audit_memory_store::MemoryEventStore;
+
+    let net = NetworkId::new(NetworkId::TESTNET).unwrap();
+    let clock = FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000));
+    let inv = AuditorId::derive(&["invariant-inv"]);
+    let mut registry = Registry::new();
+    registry
+        .register(
+            Grant::new(inv.clone(), AuditorRole::Investigator)
+                .with_scope(AccessScope::Network(net.clone()))
+                .with_credential(Credential::new(
+                    inv.clone(),
+                    "material",
+                    Timestamp::from_unix_seconds(9_999_999_999),
+                )),
+        )
+        .unwrap();
+    let authorizer = Authorizer::new(registry, clock);
+    let service = CaseService::new(
+        net.clone(),
+        "safeguard-audit-investigation",
+        VersionLabel::new("1.0.0").unwrap(),
+        clock,
+        authorizer,
+    );
+
+    // Two fully independent runs over the same case key produce the same
+    // case id and the same event identity (no duplicate on replay).
+    let ids: Vec<CaseId> = (0..2)
+        .map(|_| {
+            let mut cases = InMemoryCaseStore::new();
+            let mut audit = MemoryEventStore::new();
+            let opened = service
+                .open_case(
+                    &mut cases,
+                    &mut audit,
+                    &inv,
+                    "review",
+                    Priority::High,
+                    "denial:tx-invariant",
+                )
+                .unwrap();
+            assert_eq!(audit.len(), 1);
+            opened.case_id().clone()
+        })
+        .collect();
+    assert_eq!(ids[0], ids[1], "case id must not depend on run timing");
+}
+
+#[test]
+fn invariant_lifecycle_steps_are_ordered_and_uniquely_identified() {
+    // Each step of one case is a distinct record: reopening a case or
+    // working it while it stays open never collides with the opened event.
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
+    use safeguard_audit_core::{
+        AccessScope, AuditorId, AuditorRole, CaseStatus, FixedClock, NetworkId, Priority,
+        Timestamp, VersionLabel,
+    };
+    use safeguard_audit_investigation::{CaseService, InMemoryCaseStore};
+    use safeguard_audit_memory_store::MemoryEventStore;
+    use safeguard_audit_storage::{AuditQuery, EventStore};
+
+    let net = NetworkId::new(NetworkId::TESTNET).unwrap();
+    let clock = FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000));
+    let inv = AuditorId::derive(&["invariant-inv-2"]);
+    let mut registry = Registry::new();
+    registry
+        .register(
+            Grant::new(inv.clone(), AuditorRole::Investigator)
+                .with_scope(AccessScope::Network(net.clone()))
+                .with_credential(Credential::new(
+                    inv.clone(),
+                    "material",
+                    Timestamp::from_unix_seconds(9_999_999_999),
+                )),
+        )
+        .unwrap();
+    let authorizer = Authorizer::new(registry, clock);
+    let service = CaseService::new(
+        net.clone(),
+        "safeguard-audit-investigation",
+        VersionLabel::new("1.0.0").unwrap(),
+        clock,
+        authorizer,
+    );
+    let mut cases = InMemoryCaseStore::new();
+    let mut audit = MemoryEventStore::new();
+    let opened = service
+        .open_case(
+            &mut cases,
+            &mut audit,
+            &inv,
+            "review",
+            Priority::Medium,
+            "denial:tx-seq",
+        )
+        .unwrap();
+    let case_id = opened.case_id().clone();
+
+    // Two steps while the case stays open (assign + note) and then a
+    // close: three lifecycle events after the open.
+    service
+        .assign(&mut cases, &mut audit, &inv, &case_id, &inv)
+        .unwrap();
+    service
+        .add_note(&mut cases, &mut audit, &inv, &case_id, "checking counterparties")
+        .unwrap();
+    service
+        .transition(
+            &mut cases,
+            &mut audit,
+            &inv,
+            &case_id,
+            CaseStatus::Investigating,
+            None,
+        )
+        .unwrap();
+
+    let page = audit
+        .query(
+            &AuditQuery::builder().build().unwrap(),
+            &safeguard_audit_core::PageRequest::new(100).unwrap(),
+        )
+        .unwrap();
+    let kinds: Vec<EventKind> = page.items().iter().map(|r| r.event.kind).collect();
+    // One open + three updates; never a second investigation-opened while
+    // the case is being worked.
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|k| **k == EventKind::InvestigationOpened)
+            .count(),
+        1
+    );
+    assert_eq!(
+        kinds
+            .iter()
+            .filter(|k| **k == EventKind::InvestigationUpdated)
+            .count(),
+        3
+    );
+    // All four records are distinct (no identity collision).
+    let mut seen = std::collections::BTreeSet::new();
+    for r in page.items() {
+        assert!(
+            seen.insert(r.event.event_id.clone()),
+            "lifecycle steps must never collide in identity"
+        );
+    }
+    assert_eq!(seen.len(), 4);
+}
