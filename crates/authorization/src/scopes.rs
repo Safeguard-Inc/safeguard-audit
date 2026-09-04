@@ -58,6 +58,27 @@ pub fn any_contains(granted: &[AccessScope], requested: &AccessScope) -> bool {
     granted.iter().any(|scope| contains(scope, requested))
 }
 
+/// The scope required to access data of `classification`.
+///
+/// This is the privacy linkage between a record's data classification and
+/// authorization: a record classified `Restricted` must only be served to
+/// an auditor whose grants cover [`AccessScope::Classification`] at least
+/// `Restricted`. Since classification containment is directional (a more
+/// sensitive grant covers less sensitive data), the requester needs the
+/// scope at the record's own level or higher.
+pub fn scope_for_classification(classification: DataClassification) -> AccessScope {
+    AccessScope::Classification(classification)
+}
+
+/// Whether the granted scopes authorize access to data classified
+/// `classification`.
+///
+/// Equivalent to `any_contains(granted, &scope_for_classification(c))`;
+/// provided so callers reading a record need not build the scope by hand.
+pub fn covers_classification(granted: &[AccessScope], classification: DataClassification) -> bool {
+    any_contains(granted, &scope_for_classification(classification))
+}
+
 /// Whether a granted classification covers a requested one: the grant must
 /// be at least as sensitive as the request (a `HighlyRestricted` grant
 /// covers `Restricted` requests, never the reverse).
@@ -214,6 +235,29 @@ mod tests {
         // A bounded grant cannot cover an unbounded request.
         assert!(!contains(&wide, &unbounded));
         assert!(!contains(&wide, &wider));
+    }
+
+    #[test]
+    fn classification_scope_is_the_privacy_linkage() {
+        // A record's classification maps to the scope that must be granted.
+        let restricted_scope = scope_for_classification(DataClassification::Restricted);
+        assert_eq!(
+            restricted_scope,
+            AccessScope::Classification(DataClassification::Restricted)
+        );
+
+        let grants = vec![AccessScope::Classification(DataClassification::Restricted)];
+        // Restricted grant covers restricted and less-sensitive data.
+        assert!(covers_classification(&grants, DataClassification::Restricted));
+        assert!(covers_classification(&grants, DataClassification::Confidential));
+        // ...but not highly-restricted data.
+        assert!(!covers_classification(&grants, DataClassification::HighlyRestricted));
+        // A public-only grant covers nothing protected.
+        let public = vec![AccessScope::Classification(DataClassification::Public)];
+        assert!(!covers_classification(&public, DataClassification::Restricted));
+        // An all-scope grant covers every classification.
+        let all = vec![AccessScope::All];
+        assert!(covers_classification(&all, DataClassification::HighlyRestricted));
     }
 
     #[test]
