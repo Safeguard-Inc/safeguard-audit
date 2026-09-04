@@ -12,6 +12,7 @@ publish = false
 
 [dependencies]
 safeguard-audit-core = { path = "../audit-core" }
+serde.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true

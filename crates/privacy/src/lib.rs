@@ -38,5 +38,5 @@
 pub mod disclosure;
 pub mod redaction;
 
-pub use disclosure::{disclose_details, redacted_keys};
+pub use disclosure::{disclose_details, redacted_keys, RecordDisclosure};
 pub use redaction::{is_redacted, redact_details, REDACTED_MARKER};

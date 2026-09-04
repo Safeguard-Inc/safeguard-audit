@@ -220,6 +220,7 @@ name = "safeguard-audit-privacy"
 version = "0.1.0"
 dependencies = [
  "safeguard-audit-core",
+ "serde",
  "serde_json",
 ]
 

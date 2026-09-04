@@ -7,12 +7,72 @@
 //! enforcement seam the record model anticipated — the `redactions`
 //! field has existed since the domain foundation; this is where it is
 //! actually applied before a record's content reaches a reader.
+//!
+//! [`RecordDisclosure`] packages that view into the shape a reader at a
+//! ceiling may actually receive: the public identifiers and metadata pass
+//! through untouched, every detail value is redacted, and the withheld
+//! keys are listed as proof. It is serializable so exporters can emit it
+//! directly, and deterministic so the same record and ceiling always
+//! project to the same bytes.
 
 use std::collections::BTreeMap;
 
-use safeguard_audit_core::{AuditRecord, DataClassification};
+use serde::{Deserialize, Serialize};
+
+use safeguard_audit_core::{
+    AuditRecord, DataClassification, EventKind, NetworkId, RecordId, Timestamp,
+};
 
 use crate::redaction::redact_details;
+
+/// The disclosed projection of an [`AuditRecord`] at one ceiling.
+///
+/// This is the *only* shape a reader at `ceiling` may receive. It carries
+/// the record's public identifiers and metadata (which are public by
+/// construction — references are never protected values), the redacted
+/// `details` view, and the sorted `redacted_keys` list proving which
+/// fields were withheld. A protected value can never appear in this
+/// projection: disclosure is a projection, never an un-redaction.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RecordDisclosure {
+    /// The record's deterministic identity.
+    pub record_id: RecordId,
+    /// The underlying event kind.
+    pub kind: EventKind,
+    /// The network the record belongs to.
+    pub network: NetworkId,
+    /// When the record was created.
+    pub recorded_at: Timestamp,
+    /// Detail values disclosed at the ceiling (protected values replaced
+    /// with the redaction marker).
+    pub details: BTreeMap<String, String>,
+    /// The detail keys withheld at the ceiling, in sorted order.
+    pub redacted_keys: Vec<String>,
+}
+
+impl RecordDisclosure {
+    /// Projects `record` at `ceiling`.
+    ///
+    /// Deterministic: the same record and ceiling always produce the same
+    /// projection, so disclosed output can be reproduced and verified.
+    pub fn disclose(record: &AuditRecord, ceiling: DataClassification) -> Self {
+        let details = disclose_details(record, ceiling);
+        let redacted_keys = crate::redaction::redacted_keys(
+            &record.event.details,
+            &record.redactions,
+            record.classification,
+            ceiling,
+        );
+        Self {
+            record_id: record.record_id.clone(),
+            kind: record.event.kind,
+            network: record.event.network.clone(),
+            recorded_at: record.recorded_at,
+            details,
+            redacted_keys,
+        }
+    }
+}
 
 /// The disclosed `details` view of `record` at `ceiling`.
 ///
@@ -177,5 +237,77 @@ mod tests {
         let ceiling = DataClassification::Confidential;
         assert_eq!(disclose_details(&r, ceiling), disclose_details(&r, ceiling));
         assert_eq!(redacted_keys(&r, ceiling), redacted_keys(&r, ceiling));
+    }
+
+    #[test]
+    fn a_disclosed_projection_never_contains_a_protected_value() {
+        let secret = "enc:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1f";
+        let mut r = record(&[("amount_ciphertext", secret), ("note", "denied")]);
+        r.redactions.insert(
+            "amount_ciphertext".into(),
+            DataClassification::HighlyRestricted,
+        );
+        let view = RecordDisclosure::disclose(&r, DataClassification::Confidential);
+
+        // The projection's serialized bytes must not contain the value.
+        let json = serde_json::to_string(&view).unwrap();
+        assert!(
+            !json.contains(secret),
+            "protected value leaked into disclosure"
+        );
+        assert!(json.contains("[redacted]"));
+
+        // Public identifiers survive for correlation.
+        assert_eq!(view.record_id, r.record_id);
+        assert_eq!(view.kind, EventKind::TransferDenied);
+        assert_eq!(view.network, r.event.network);
+        assert_eq!(view.recorded_at, r.recorded_at);
+        assert_eq!(view.redacted_keys, vec!["amount_ciphertext", "note"]);
+    }
+
+    #[test]
+    fn projection_is_deterministic_and_round_trips() {
+        let mut r = record(&[("a", "1"), ("b", "2"), ("secret", "s")]);
+        r.redactions
+            .insert("secret".into(), DataClassification::HighlyRestricted);
+        let ceiling = DataClassification::Confidential;
+        let first = RecordDisclosure::disclose(&r, ceiling);
+        let second = RecordDisclosure::disclose(&r, ceiling);
+        assert_eq!(first, second);
+        assert_eq!(
+            serde_json::to_string(&first).unwrap(),
+            serde_json::to_string(&second).unwrap()
+        );
+        // And the projection survives the wire.
+        let back: RecordDisclosure =
+            serde_json::from_str(&serde_json::to_string(&first).unwrap()).unwrap();
+        assert_eq!(back, first);
+    }
+
+    #[test]
+    fn marker_bearing_keys_and_the_proof_list_always_agree() {
+        let mut r = record(&[
+            ("reason", "POLICY_DENIED"),
+            ("amount", "1.5"),
+            ("note", "class B"),
+        ]);
+        r.redactions
+            .insert("amount".into(), DataClassification::HighlyRestricted);
+        r.redactions
+            .insert("note".into(), DataClassification::Restricted);
+        let view = RecordDisclosure::disclose(&r, DataClassification::Confidential);
+        let marker_keys: Vec<&String> = view
+            .details
+            .iter()
+            .filter(|(_, v)| crate::is_redacted(v))
+            .map(|(k, _)| k)
+            .collect();
+        // All three keys are withheld: amount and note by the table
+        // (highly-restricted and restricted), reason because it is
+        // undeclared and inherits the record's confidential level, which
+        // is at the ceiling.
+        assert_eq!(view.redacted_keys.len(), marker_keys.len());
+        assert_eq!(view.redacted_keys, vec!["amount", "note", "reason"]);
+        assert!(marker_keys.contains(&&"amount".to_owned()));
     }
 }
