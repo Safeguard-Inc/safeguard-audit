@@ -578,3 +578,112 @@ fn invariant_lifecycle_steps_are_ordered_and_uniquely_identified() {
     }
     assert_eq!(seen.len(), 4);
 }
+
+#[test]
+fn invariant_evidence_packages_are_reproducible_and_tamper_evident() {
+    // Evidence from the same sources and configuration is byte-identical,
+    // and verification is conjunctive: any single integrity failure (the
+    // artifact digest, the manifest aggregate, or a per-record digest)
+    // makes the whole package fail verification — never a partial pass.
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
+    use safeguard_audit_core::{
+        AccessScope, AuditorId, AuditorRole, AuditEvent, AuditRecord, EventKind,
+        EventProvenance, EvidenceKind, FixedClock, NetworkId, OriginKind, PageRequest,
+        RecordId, Timestamp, VersionLabel,
+    };
+    use safeguard_audit_evidence::{EvidenceBuildOptions, EvidenceBuilder};
+    use safeguard_audit_integrity::seal_standalone;
+    use safeguard_audit_memory_store::MemoryEventStore;
+    use safeguard_audit_storage::{AuditQuery, EventStore};
+
+    let net = NetworkId::new(NetworkId::TESTNET).unwrap();
+    let clock = FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000));
+    let parser = VersionLabel::new("1.0.0").unwrap();
+    let senior = AuditorId::derive(&["invariant-senior"]);
+    let mut registry = Registry::new();
+    registry
+        .register(
+            Grant::new(senior.clone(), AuditorRole::SeniorAuditor)
+                .with_scope(AccessScope::Network(net.clone()))
+                .with_credential(Credential::new(
+                    senior.clone(),
+                    "material",
+                    Timestamp::from_unix_seconds(9_999_999_999),
+                )),
+        )
+        .unwrap();
+
+    let mut store = MemoryEventStore::new();
+    for seed in ["ev-a", "ev-b"] {
+        let event = AuditEvent::new(
+            safeguard_audit_core::EventId::derive(&[seed]),
+            EventKind::TransferDenied,
+            net.clone(),
+            EventProvenance::new(OriginKind::OnChain, "soroban", parser.clone()).unwrap(),
+        );
+        let record = seal_standalone(
+            &AuditRecord::from_event_classified(
+                event,
+                safeguard_audit_core::DataClassification::Confidential,
+                &clock,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        store.insert(record).unwrap();
+    }
+    let ids: Vec<RecordId> = store
+        .query(
+            &AuditQuery::builder().build().unwrap(),
+            &PageRequest::new(10).unwrap(),
+        )
+        .unwrap()
+        .items()
+        .iter()
+        .map(|r| r.record_id.clone())
+        .collect();
+
+    let builder = EvidenceBuilder::new(
+        net.clone(),
+        "safeguard-audit-evidence",
+        parser,
+        VersionLabel::new("0.4.0").unwrap(),
+        clock,
+        Authorizer::new(registry, clock),
+    );
+    let options =
+        EvidenceBuildOptions::new(EvidenceKind::TransactionEvidence, ids, senior.clone()).unwrap();
+    let first = builder.build(&mut store, &options).unwrap();
+    let second = builder.build(&mut store, &options).unwrap();
+    assert_eq!(first, second, "same sources and configuration reproduce byte-identical evidence");
+
+    // Verification is conjunctive: flip the artifact digest, then the
+    // aggregate, then a manifest entry — each alone must fail the package.
+    let fresh = safeguard_audit_evidence::verify_package(&first, &store).unwrap();
+    assert!(fresh.verified());
+
+    let mut value = serde_json::to_value(&first).unwrap();
+    value["artifact"]["digest"]["value"] = serde_json::Value::String("ee".repeat(32));
+    let tampered: safeguard_audit_evidence::EvidencePackage =
+        serde_json::from_value(value).unwrap();
+    assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)
+        .unwrap()
+        .verified());
+
+    let mut value = serde_json::to_value(&first).unwrap();
+    value["manifest"]["aggregate_digest"]["value"] = serde_json::Value::String("cc".repeat(32));
+    let tampered: safeguard_audit_evidence::EvidencePackage =
+        serde_json::from_value(value).unwrap();
+    assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)
+        .unwrap()
+        .verified());
+
+    let mut value = serde_json::to_value(&first).unwrap();
+    value["manifest"]["entries"][1]["digest"]["value"] =
+        serde_json::Value::String("dd".repeat(32));
+    let tampered: safeguard_audit_evidence::EvidencePackage =
+        serde_json::from_value(value).unwrap();
+    assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)
+        .unwrap()
+        .verified());
+}
