@@ -188,6 +188,100 @@ impl CaseService {
         Ok(case)
     }
 
+    /// Links an audit record to the case after verifying it exists in the
+    /// audit store. The record's kind drives the timeline entry type, so
+    /// linking a denial record surfaces as a `denial` timeline entry.
+    pub fn link_record(
+        &self,
+        cases: &mut dyn CaseStore,
+        audit: &mut dyn EventStore,
+        actor: &AuditorId,
+        case_id: &CaseId,
+        record_id: &safeguard_audit_core::RecordId,
+        kind: safeguard_audit_core::TimelineEntryKind,
+    ) -> InvestigationResult<InvestigationCase> {
+        self.require(
+            actor,
+            AccessAction::CreateInvestigation,
+            "link a record to a case",
+        )?;
+        let mut case = self.get_open(cases, case_id)?;
+
+        // The record must exist in the audit store before it can be linked
+        // to an investigation: a case may reference reality, never ghosts.
+        audit
+            .get(record_id)
+            .map_err(|_| InvestigationError::MissingRecord(record_id.as_str().to_owned()))?;
+
+        case.add_related_record(record_id.clone(), kind, Timestamp::now(self.clock.as_ref()))
+            .map_err(|e| InvestigationError::Internal(e.to_string()))?;
+        self.commit(cases, audit, actor, case, None)
+    }
+
+    /// Adds a finding to the case, recording a `finding-added` timeline
+    /// entry and an `investigation-updated` event.
+    pub fn add_finding(
+        &self,
+        cases: &mut dyn CaseStore,
+        audit: &mut dyn EventStore,
+        actor: &AuditorId,
+        case_id: &CaseId,
+        kind: safeguard_audit_core::FindingKind,
+        severity: safeguard_audit_core::Severity,
+        summary: &str,
+        related_records: Vec<safeguard_audit_core::RecordId>,
+    ) -> InvestigationResult<InvestigationCase> {
+        self.require(actor, AccessAction::CreateInvestigation, "add a finding")?;
+        let mut case = self.get_open(cases, case_id)?;
+
+        let now = Timestamp::now(self.clock.as_ref());
+        // The finding id derives from the case and the step index, so the
+        // Nth finding of a case is deterministically the Nth finding.
+        let finding_id = safeguard_audit_core::FindingId::derive(&[
+            case_id.as_str(),
+            &format!("finding:{}", case.timeline().len()),
+        ]);
+        let finding = safeguard_audit_core::Finding::new(
+            finding_id,
+            kind,
+            severity,
+            summary,
+            now,
+            actor.clone(),
+        )
+        .map_err(|e| InvestigationError::InvalidContent(e.to_string()))?
+        .with_related_records(related_records);
+
+        case.add_finding(finding, now)
+            .map_err(|e| InvestigationError::Internal(e.to_string()))?;
+        self.commit(cases, audit, actor, case, Some(summary))
+    }
+
+    /// Adds a note to the case.
+    pub fn add_note(
+        &self,
+        cases: &mut dyn CaseStore,
+        audit: &mut dyn EventStore,
+        actor: &AuditorId,
+        case_id: &CaseId,
+        body: &str,
+    ) -> InvestigationResult<InvestigationCase> {
+        self.require(actor, AccessAction::CreateInvestigation, "add a note")?;
+        let mut case = self.get_open(cases, case_id)?;
+
+        let now = Timestamp::now(self.clock.as_ref());
+        let note_id = safeguard_audit_core::NoteId::derive(&[
+            case_id.as_str(),
+            &format!("note:{}", case.timeline().len()),
+        ]);
+        let note = safeguard_audit_core::Note::new(note_id, actor.clone(), body, now)
+            .map_err(|e| InvestigationError::InvalidContent(e.to_string()))?;
+
+        case.add_note(note)
+            .map_err(|e| InvestigationError::Internal(e.to_string()))?;
+        self.commit(cases, audit, actor, case, None)
+    }
+
     /// Authorizes `actor` for `action` at this service's network scope.
     fn require(
         &self,
@@ -496,6 +590,142 @@ mod tests {
         assert_eq!(items.len(), 2);
         assert_eq!(items[0].event.kind, EventKind::InvestigationOpened);
         assert_eq!(items[1].event.kind, EventKind::InvestigationUpdated);
+    }
+
+    fn seed_record() -> (MemoryEventStore, safeguard_audit_core::RecordId) {
+        // A minimal valid record in an audit store, used to test linking.
+        let mut audit = MemoryEventStore::new();
+        let event = safeguard_audit_core::AuditEvent::new(
+            safeguard_audit_core::EventId::derive(&["testnet", "seed-tx"]),
+            safeguard_audit_core::EventKind::TransferDenied,
+            net(),
+            safeguard_audit_core::EventProvenance::new(
+                safeguard_audit_core::OriginKind::Derived,
+                "test",
+                VersionLabel::new("1.0.0").unwrap(),
+            )
+            .unwrap()
+            .with_derivation(
+                safeguard_audit_core::DerivationInfo::new(
+                    "seed",
+                    Vec::new(),
+                    "seeded for link tests",
+                )
+                .unwrap(),
+            ),
+        );
+        let record = safeguard_audit_core::AuditRecord::from_event(event, &clock()).unwrap();
+        let id = record.record_id.clone();
+        audit.insert(record).unwrap();
+        (audit, id)
+    }
+
+    #[test]
+    fn linking_a_record_requires_it_to_exist_in_the_audit_store() {
+        let service = service();
+        let (mut cases, mut audit_store) = stores();
+        // Give the case store its own audit store to link from.
+        let opened = service
+            .open_case(
+                &mut cases,
+                &mut audit_store,
+                &auditor("inv"),
+                "denied transfer",
+                Priority::High,
+                "denial:tx-link",
+            )
+            .unwrap();
+
+        // Linking a ghost record is rejected: a case references reality.
+        let ghost = safeguard_audit_core::RecordId::derive(&["ghost"]);
+        let err = service
+            .link_record(
+                &mut cases,
+                &mut audit_store,
+                &auditor("inv"),
+                opened.case_id(),
+                &ghost,
+                safeguard_audit_core::TimelineEntryKind::Denial,
+            )
+            .unwrap_err();
+        assert!(matches!(err, InvestigationError::MissingRecord(_)));
+
+        // With a real record, the link succeeds and lands on the timeline.
+        let (mut seed_audit, record_id) = seed_record();
+        let linked = service
+            .link_record(
+                &mut cases,
+                &mut seed_audit,
+                &auditor("inv"),
+                opened.case_id(),
+                &record_id,
+                safeguard_audit_core::TimelineEntryKind::Denial,
+            )
+            .unwrap();
+        assert_eq!(linked.timeline().len(), 1);
+        assert_eq!(
+            linked.timeline()[0].kind(),
+            safeguard_audit_core::TimelineEntryKind::Denial
+        );
+        assert_eq!(linked.timeline()[0].record(), Some(&record_id));
+        linked
+            .validate()
+            .expect("a case with a linked record stays valid");
+    }
+
+    #[test]
+    fn findings_and_notes_accumulate_with_timeline_entries() {
+        let service = service();
+        let (mut cases, mut audit) = stores();
+        let opened = service
+            .open_case(
+                &mut cases,
+                &mut audit,
+                &auditor("inv"),
+                "denied transfer",
+                Priority::High,
+                "denial:tx-find",
+            )
+            .unwrap();
+
+        let with_finding = service
+            .add_finding(
+                &mut cases,
+                &mut audit,
+                &auditor("inv"),
+                opened.case_id(),
+                safeguard_audit_core::FindingKind::Anomaly,
+                safeguard_audit_core::Severity::High,
+                "repeated denials from the same account",
+                Vec::new(),
+            )
+            .unwrap();
+        assert_eq!(with_finding.findings().len(), 1);
+        assert_eq!(
+            with_finding.findings()[0].severity(),
+            safeguard_audit_core::Severity::High
+        );
+
+        let with_note = service
+            .add_note(
+                &mut cases,
+                &mut audit,
+                &auditor("inv"),
+                opened.case_id(),
+                "awaiting the account freeze record",
+            )
+            .unwrap();
+        assert_eq!(with_note.notes().len(), 1);
+        assert_eq!(with_note.timeline().len(), 2);
+        with_note
+            .validate()
+            .expect("findings and notes keep the case valid");
+
+        // Finding ids are deterministic per step index.
+        assert!(with_finding.findings()[0]
+            .finding_id()
+            .as_str()
+            .starts_with("find_"));
     }
 
     #[test]
