@@ -28,11 +28,14 @@ pub mod authorization;
 pub mod correlation;
 pub mod errors;
 pub mod event;
+pub mod evidence;
 pub mod identifiers;
 pub mod integrity;
+pub mod investigation;
 pub mod pagination;
 pub mod privacy;
 pub mod record;
+pub mod report;
 pub mod retention;
 pub mod serialization;
 pub mod timestamps;
@@ -49,13 +52,21 @@ pub use correlation::{
 };
 pub use errors::AuditError;
 pub use event::{AuditEvent, DerivationInfo, EventKind, EventOrder, EventProvenance, OriginKind};
+pub use evidence::{EvidenceArtifact, EvidenceKind, EvidenceProvenance};
 pub use identifiers::EventId;
 pub use integrity::{
     IntegrityDigest, IntegrityManifest, IntegrityScheme, IntegrityStatus, ManifestEntry,
     VerificationFailure, VerificationOutcome,
 };
+pub use investigation::{
+    CaseStatus, Finding, FindingKind, InvestigationCase, Note, Priority, RelatedReferences,
+    Severity, TimelineEntry, TimelineEntryKind,
+};
 pub use pagination::{Cursor, Page, PageRequest};
 pub use privacy::DataClassification;
 pub use record::{AuditRecord, RecordIntegrity};
+pub use report::{
+    GeneratorVersions, Report, ReportKind, ReportQuery, ReportRequest, ReportSummary,
+};
 pub use retention::{RetentionPeriod, RetentionPolicy, RetentionStatus};
 pub use timestamps::{Clock, FixedClock, SystemClock, TimeRange, Timestamp};
