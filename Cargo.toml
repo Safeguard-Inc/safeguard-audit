@@ -8,6 +8,7 @@ members = [
     "crates/event-normalizer",
     "crates/integration-tests",
     "crates/integrity",
+    "crates/investigation",
     "crates/storage",
     "crates/memory-store",
 ]

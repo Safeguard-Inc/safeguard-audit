@@ -1,0 +1,21 @@
+[package]
+name = "safeguard-audit-investigation"
+description = "Investigation services for the Safeguard audit layer: the case store contract, lifecycle service (open, assign, transition, link records, findings, notes, close), and the projection of every lifecycle step onto investigation events in the audit store."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-events = { path = "../audit-events" }
+safeguard-audit-storage = { path = "../storage" }
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+safeguard-audit-memory-store = { path = "../memory-store" }
