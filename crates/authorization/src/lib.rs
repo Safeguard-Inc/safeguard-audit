@@ -57,6 +57,7 @@
 //! credential abstraction — this crate treats a registered credential that
 //! has not expired as valid and says so plainly.
 
+pub mod authorizer;
 pub mod credentials;
 pub mod errors;
 pub mod permissions;
