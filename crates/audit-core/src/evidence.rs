@@ -177,6 +177,21 @@ impl EvidenceArtifact {
         Ok(())
     }
 
+    /// Canonical bytes for the artifact's *content* — the deterministic
+    /// input to its content digest.
+    ///
+    /// The integrity slots are excluded by construction: the digest and
+    /// manifest id are attached *after* the content is hashed, so they can
+    /// never be part of the content they certify. The builder hashes these
+    /// bytes and the verifier recomputes them from the stored artifact,
+    /// which makes both paths agree without any field-stripping hacks.
+    pub fn canonical_bytes(&self) -> AuditResult<Vec<u8>> {
+        let mut content = self.clone();
+        content.digest = None;
+        content.manifest_id = None;
+        crate::serialization::canonical_json(&content)
+    }
+
     /// The evidence id.
     pub fn evidence_id(&self) -> &EvidenceId {
         &self.evidence_id
@@ -289,5 +304,37 @@ mod tests {
         let json = serde_json::to_string(&artifact).unwrap();
         let back: EvidenceArtifact = serde_json::from_str(&json).unwrap();
         assert_eq!(back, artifact);
+    }
+
+    #[test]
+    fn canonical_bytes_exclude_the_integrity_slots() {
+        let provenance = EvidenceProvenance::new(
+            vec![RecordId::derive(&["r"])],
+            vec![],
+            VersionLabel::new("1").unwrap(),
+            VersionLabel::new("1").unwrap(),
+        )
+        .unwrap();
+        let artifact = EvidenceArtifact::new(
+            EvidenceId::derive(&["e"]),
+            EvidenceKind::TransactionEvidence,
+            provenance,
+            Timestamp::from_unix_seconds(0),
+            None,
+        );
+        let digest = IntegrityDigest::sha256("aa".repeat(32)).unwrap();
+        let manifest = ManifestId::derive(&["m"]);
+        let sealed = artifact
+            .clone()
+            .with_digest(digest)
+            .with_manifest(manifest.clone());
+        // Sealing never changes the canonical content: the digest and
+        // manifest are attached after content hashing, not part of it.
+        assert_eq!(artifact.canonical_bytes().unwrap(), sealed.canonical_bytes().unwrap());
+        // And content bytes are deterministic.
+        assert_eq!(
+            sealed.canonical_bytes().unwrap(),
+            sealed.canonical_bytes().unwrap()
+        );
     }
 }
