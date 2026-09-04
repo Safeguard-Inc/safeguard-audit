@@ -43,11 +43,6 @@ pub enum ReportingError {
 pub type ReportingResult<T> = Result<T, ReportingError>;
 
 impl ReportingError {
-    /// Wraps an integrity-crate error.
-    pub(crate) fn from_integrity(e: impl std::fmt::Display) -> Self {
-        Self::Integrity(e.to_string())
-    }
-
     /// Wraps a core audit error (e.g. canonicalization).
     pub(crate) fn from_core(e: impl std::fmt::Display) -> Self {
         Self::Internal(e.to_string())
