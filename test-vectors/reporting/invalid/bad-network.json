@@ -1,0 +1,14 @@
+{
+  "scheme": "report-query-mapping",
+  "note": "an unparsable network label must fail the mapping",
+  "query": {
+    "time_range": null,
+    "network": "not a network!",
+    "tokens": [],
+    "event_kinds": [],
+    "outcome": null,
+    "account": null,
+    "classification_ceiling": null
+  },
+  "expect": { "ok": false }
+}

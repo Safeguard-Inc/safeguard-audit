@@ -1,0 +1,14 @@
+{
+  "scheme": "report-query-mapping",
+  "note": "an unfiltered query maps cleanly onto the store query",
+  "query": {
+    "time_range": null,
+    "network": null,
+    "tokens": [],
+    "event_kinds": [],
+    "outcome": null,
+    "account": null,
+    "classification_ceiling": null
+  },
+  "expect": { "ok": true }
+}

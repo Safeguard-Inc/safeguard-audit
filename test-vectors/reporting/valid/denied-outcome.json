@@ -1,0 +1,14 @@
+{
+  "scheme": "report-query-mapping",
+  "note": "an outcome filter maps onto the store's decision filter",
+  "query": {
+    "time_range": null,
+    "network": null,
+    "tokens": [],
+    "event_kinds": [],
+    "outcome": "denied",
+    "account": null,
+    "classification_ceiling": null
+  },
+  "expect": { "ok": true }
+}

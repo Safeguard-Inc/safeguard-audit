@@ -1,0 +1,14 @@
+{
+  "scheme": "report-query-mapping",
+  "note": "an account filter plus event-kind filters map onto the store query",
+  "query": {
+    "time_range": null,
+    "network": null,
+    "tokens": [],
+    "event_kinds": ["transfer-denied", "account-frozen"],
+    "outcome": null,
+    "account": "GASENDERACCOUNTDEMO0000000000000000000000000000000000",
+    "classification_ceiling": null
+  },
+  "expect": { "ok": true }
+}

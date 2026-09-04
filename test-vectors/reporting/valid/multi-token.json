@@ -1,0 +1,17 @@
+{
+  "scheme": "report-query-mapping",
+  "note": "two tokens cannot be one store filter; the mapping still succeeds (membership is applied by the service)",
+  "query": {
+    "time_range": null,
+    "network": null,
+    "tokens": [
+      { "network": "testnet", "contract": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000" },
+      { "network": "testnet", "contract": "CSECONDTOKENDEMO00000000000000000000000000000000000" }
+    ],
+    "event_kinds": [],
+    "outcome": null,
+    "account": null,
+    "classification_ceiling": null
+  },
+  "expect": { "ok": true }
+}

@@ -1,0 +1,14 @@
+{
+  "scheme": "report-query-mapping",
+  "note": "a time range plus a network label map onto the store query",
+  "query": {
+    "time_range": { "start": 1700000000, "end": 1700000700 },
+    "network": "testnet",
+    "tokens": [],
+    "event_kinds": [],
+    "outcome": null,
+    "account": null,
+    "classification_ceiling": null
+  },
+  "expect": { "ok": true }
+}

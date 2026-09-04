@@ -1,0 +1,14 @@
+{
+  "scheme": "report-query-mapping",
+  "note": "an inverted time range from the wire must fail the mapping",
+  "query": {
+    "time_range": { "start": 1700000700, "end": 1700000000 },
+    "network": null,
+    "tokens": [],
+    "event_kinds": [],
+    "outcome": null,
+    "account": null,
+    "classification_ceiling": null
+  },
+  "expect": { "ok": false }
+}
