@@ -1,0 +1,13 @@
+{
+  "scheme": "hooks-state-event",
+  "note": "An observed token_bound event; no account or policy fields are legal here.",
+  "payload": {
+    "type": "token_bound",
+    "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+    "ledger": 415,
+    "close_time": 1700000100,
+    "transaction_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "operation_index": 0,
+    "event_index": 0
+  }
+}

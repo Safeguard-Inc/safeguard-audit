@@ -1,0 +1,30 @@
+{
+  "scheme": "audit-envelope",
+  "note": "An already-normalized envelope re-ingested for backfill or replay; its event id is authoritative and preserved.",
+  "payload": {
+    "event_id": "evt_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "kind": "transfer-denied",
+    "schema_version": 1,
+    "network": "testnet",
+    "provenance": {
+      "origin": "derived",
+      "source": "safeguard-audit",
+      "parser_version": "1.0.0",
+      "derivation": {
+        "method": "transaction-outcome-analysis",
+        "source_events": [],
+        "note": "denial reconstructed from the failed transaction"
+      }
+    },
+    "observed_at": 1700000200,
+    "order": { "ledger_sequence": 421, "operation_index": 0, "event_index": null },
+    "transaction": {
+      "network": "testnet",
+      "hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+    },
+    "token": { "network": "testnet", "contract": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000" },
+    "outcome": "denied",
+    "reason": "POLICY_DENIED",
+    "details": {}
+  }
+}

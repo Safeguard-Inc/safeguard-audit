@@ -1,0 +1,15 @@
+{
+  "scheme": "hooks-state-event",
+  "note": "An observed compliance_config_changed event; normalizes with the SAC flag and policy address carried as details.",
+  "payload": {
+    "type": "compliance_config_changed",
+    "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+    "policy": "CPOLICYCONTRACTDEMO0000000000000000000000000000000000",
+    "sac_passthrough": true,
+    "ledger": 419,
+    "close_time": 1700000050,
+    "transaction_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "operation_index": 1,
+    "event_index": 0
+  }
+}

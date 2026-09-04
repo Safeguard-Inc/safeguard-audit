@@ -1,0 +1,15 @@
+{
+  "scheme": "hooks-state-event",
+  "expect": "malformed",
+  "note": "String-ledgers and float indexes are malformed payloads, not reinterpretable values.",
+  "payload": {
+    "type": "account_frozen",
+    "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+    "account": "GAFROZENACCOUNTDEMO00000000000000000000000000000000000",
+    "ledger": "423",
+    "close_time": 1700000400,
+    "transaction_hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+    "operation_index": 0.5,
+    "event_index": 0
+  }
+}

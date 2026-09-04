@@ -1,0 +1,14 @@
+{
+  "scheme": "hooks-state-event",
+  "expect": "invalid",
+  "note": "Type-dependent fields must be present exactly; a freeze without its subject account is invalid.",
+  "payload": {
+    "type": "account_frozen",
+    "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+    "ledger": 423,
+    "close_time": 1700000400,
+    "transaction_hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+    "operation_index": 2,
+    "event_index": 0
+  }
+}

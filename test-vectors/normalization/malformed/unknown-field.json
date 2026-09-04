@@ -1,0 +1,15 @@
+{
+  "scheme": "hooks-state-event",
+  "expect": "malformed",
+  "note": "Unknown fields must be rejected, never silently dropped: an amount could be protected data smuggled past the surface.",
+  "payload": {
+    "type": "token_bound",
+    "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+    "ledger": 415,
+    "close_time": 1700000100,
+    "transaction_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "operation_index": 0,
+    "event_index": 0,
+    "amount": 100
+  }
+}

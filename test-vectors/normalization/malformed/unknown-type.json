@@ -1,0 +1,14 @@
+{
+  "scheme": "hooks-state-event",
+  "expect": "invalid",
+  "note": "Approvals are never emitted on-chain; a type claiming one is rejected rather than guessed at.",
+  "payload": {
+    "type": "transfer_approved",
+    "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+    "ledger": 415,
+    "close_time": 1700000100,
+    "transaction_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "operation_index": 0,
+    "event_index": 0
+  }
+}
