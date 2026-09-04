@@ -53,6 +53,12 @@ pub enum ReportKind {
     IntegrityVerification,
 }
 
+impl std::fmt::Display for ReportKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 impl ReportKind {
     /// The stable label for this report kind.
     pub fn as_str(&self) -> &'static str {
@@ -254,6 +260,16 @@ impl Report {
     /// The summary counts.
     pub fn summary(&self) -> &ReportSummary {
         &self.summary
+    }
+
+    /// The body rows (public transaction references).
+    pub fn rows(&self) -> &[TransactionReference] {
+        &self.record_refs
+    }
+
+    /// The content digest, once computed.
+    pub fn digest(&self) -> Option<&IntegrityDigest> {
+        self.digest.as_ref()
     }
 
     /// Canonical bytes for the report's *content* — the deterministic
