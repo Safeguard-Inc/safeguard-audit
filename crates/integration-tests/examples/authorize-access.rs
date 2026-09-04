@@ -136,11 +136,7 @@ fn main() {
             (false, Some(r)) => r,
             (false, None) => "DENIED",
         };
-        println!(
-            "  [{outcome:<18}] {} — scope {}",
-            what,
-            decision.scope()
-        );
+        println!("  [{outcome:<18}] {} — scope {}", what, decision.scope());
     }
 
     // --- Show the recorded audit-access trail. ------------------------

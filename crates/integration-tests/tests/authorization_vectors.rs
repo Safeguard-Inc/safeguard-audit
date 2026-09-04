@@ -12,8 +12,8 @@ use std::path::{Path, PathBuf};
 
 use safeguard_audit_authorization::{reason, Authorizer, Credential, Grant, Registry};
 use safeguard_audit_core::{
-    AccessAction, AccessScope, AuditorId, AuditorRole, DataClassification, FixedClock,
-    NetworkId, Timestamp,
+    AccessAction, AccessScope, AuditorId, AuditorRole, DataClassification, FixedClock, NetworkId,
+    Timestamp,
 };
 use serde::Deserialize;
 
@@ -146,7 +146,10 @@ fn run_vector(vector: &Vector) -> (bool, String) {
     let decision = authorizer
         .authorize(&auditor, parse_action(&vector.action), &requested)
         .unwrap();
-    (decision.allowed(), decision.reason().unwrap_or("").to_owned())
+    (
+        decision.allowed(),
+        decision.reason().unwrap_or("").to_owned(),
+    )
 }
 
 #[test]
@@ -188,7 +191,8 @@ fn reason_labels_in_vectors_are_known() {
     ];
     for (path, vector) in &read_vectors() {
         assert_eq!(
-            vector.scheme, "authorization-decision",
+            vector.scheme,
+            "authorization-decision",
             "{} must declare scheme authorization-decision",
             path.display()
         );

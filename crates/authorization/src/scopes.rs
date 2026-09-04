@@ -248,16 +248,31 @@ mod tests {
 
         let grants = vec![AccessScope::Classification(DataClassification::Restricted)];
         // Restricted grant covers restricted and less-sensitive data.
-        assert!(covers_classification(&grants, DataClassification::Restricted));
-        assert!(covers_classification(&grants, DataClassification::Confidential));
+        assert!(covers_classification(
+            &grants,
+            DataClassification::Restricted
+        ));
+        assert!(covers_classification(
+            &grants,
+            DataClassification::Confidential
+        ));
         // ...but not highly-restricted data.
-        assert!(!covers_classification(&grants, DataClassification::HighlyRestricted));
+        assert!(!covers_classification(
+            &grants,
+            DataClassification::HighlyRestricted
+        ));
         // A public-only grant covers nothing protected.
         let public = vec![AccessScope::Classification(DataClassification::Public)];
-        assert!(!covers_classification(&public, DataClassification::Restricted));
+        assert!(!covers_classification(
+            &public,
+            DataClassification::Restricted
+        ));
         // An all-scope grant covers every classification.
         let all = vec![AccessScope::All];
-        assert!(covers_classification(&all, DataClassification::HighlyRestricted));
+        assert!(covers_classification(
+            &all,
+            DataClassification::HighlyRestricted
+        ));
     }
 
     #[test]

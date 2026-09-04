@@ -141,12 +141,14 @@ dependencies = [
 name = "safeguard-audit-integration-tests"
 version = "0.1.0"
 dependencies = [
+ "safeguard-audit-authorization",
  "safeguard-audit-core",
  "safeguard-audit-indexer",
  "safeguard-audit-integrity",
  "safeguard-audit-memory-store",
  "safeguard-audit-normalizer",
  "safeguard-audit-storage",
+ "serde",
  "serde_json",
 ]
 

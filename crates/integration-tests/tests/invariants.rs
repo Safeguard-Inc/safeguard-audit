@@ -246,8 +246,8 @@ fn invariant_no_protected_data_access_without_authorization() {
     // access to a restricted/highly-restricted record must trace to a
     // granted classification scope. There is no path where data at a
     // classification above the grant leaks.
-    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
     use safeguard_audit_authorization::scopes::covers_classification;
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
     use safeguard_audit_core::{
         AccessScope, AuditorId, AuditorRole, DataClassification, FixedClock, NetworkId, Timestamp,
     };
@@ -257,7 +257,9 @@ fn invariant_no_protected_data_access_without_authorization() {
     registry
         .register(
             Grant::new(auditor.clone(), AuditorRole::ComplianceOfficer)
-                .with_scope(AccessScope::Network(NetworkId::new(NetworkId::TESTNET).unwrap()))
+                .with_scope(AccessScope::Network(
+                    NetworkId::new(NetworkId::TESTNET).unwrap(),
+                ))
                 .with_scope(AccessScope::Classification(DataClassification::Restricted))
                 .with_credential(Credential::new(
                     auditor.clone(),
@@ -273,10 +275,19 @@ fn invariant_no_protected_data_access_without_authorization() {
 
     // The grant covers restricted data and everything less sensitive.
     let scopes = vec![AccessScope::Classification(DataClassification::Restricted)];
-    assert!(covers_classification(&scopes, DataClassification::Restricted));
-    assert!(covers_classification(&scopes, DataClassification::Confidential));
+    assert!(covers_classification(
+        &scopes,
+        DataClassification::Restricted
+    ));
+    assert!(covers_classification(
+        &scopes,
+        DataClassification::Confidential
+    ));
     // ...but never highly-restricted data, no matter the role.
-    assert!(!covers_classification(&scopes, DataClassification::HighlyRestricted));
+    assert!(!covers_classification(
+        &scopes,
+        DataClassification::HighlyRestricted
+    ));
 
     // And the authorizer agrees end to end: requesting protected data at
     // the granted level succeeds; above it is out of scope.
@@ -303,8 +314,7 @@ fn invariant_access_entries_always_carry_attribution() {
     // Every recorded access answers who/what/when. A stored audit-access
     // record without an attributed auditor or time would break the
     // accountability the whole subsystem exists for.
-    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry,
-        StoreAccessLog};
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry, StoreAccessLog};
     use safeguard_audit_core::{
         AccessAction, AccessScope, AuditorId, AuditorRole, FixedClock, NetworkId, Timestamp,
         VersionLabel,
@@ -316,7 +326,9 @@ fn invariant_access_entries_always_carry_attribution() {
     registry
         .register(
             Grant::new(auditor.clone(), AuditorRole::SeniorAuditor)
-                .with_scope(AccessScope::Network(NetworkId::new(NetworkId::TESTNET).unwrap()))
+                .with_scope(AccessScope::Network(
+                    NetworkId::new(NetworkId::TESTNET).unwrap(),
+                ))
                 .with_credential(Credential::new(
                     auditor.clone(),
                     "material",
@@ -392,11 +404,7 @@ fn invariant_unknown_auditors_cannot_force_a_decision() {
     );
     let ghost = AuditorId::derive(&["ghost"]);
     let decision = authorizer
-        .authorize(
-            &ghost,
-            AccessAction::ExportRecords,
-            &AccessScope::All,
-        )
+        .authorize(&ghost, AccessAction::ExportRecords, &AccessScope::All)
         .unwrap();
     assert!(!decision.allowed());
     assert_eq!(decision.reason(), Some(reason::UNKNOWN_AUDITOR));

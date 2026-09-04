@@ -7,8 +7,7 @@
 //! record — the audit trail auditing itself, at exactly one hop.
 
 use safeguard_audit_authorization::{
-    reason, AccessLog, AccessLogWithStore, Authorizer, Credential, Grant, Registry,
-    StoreAccessLog,
+    reason, AccessLog, AccessLogWithStore, Authorizer, Credential, Grant, Registry, StoreAccessLog,
 };
 use safeguard_audit_core::{
     AccessAction, AccessScope, AuditorId, AuditorRole, EventKind, FixedClock, NetworkId,
@@ -35,12 +34,7 @@ fn clock_at(secs: i64) -> FixedClock {
 
 /// Registers an auditor with a role, a network scope, and a credential
 /// expiring at `expiry` (in seconds).
-fn registered(
-    registry: &mut Registry,
-    name: &str,
-    role: AuditorRole,
-    expiry: i64,
-) {
+fn registered(registry: &mut Registry, name: &str, role: AuditorRole, expiry: i64) {
     registry
         .register(
             Grant::new(aud(name), role)
@@ -65,7 +59,9 @@ fn decide_and_record(
     scope: &AccessScope,
 ) -> safeguard_audit_core::AuthorizationDecision {
     let decision = authorizer.authorize(auditor, action, scope).unwrap();
-    let entry = authorizer.entry_for_decision(&decision, Some("rec_1234")).unwrap();
+    let entry = authorizer
+        .entry_for_decision(&decision, Some("rec_1234"))
+        .unwrap();
     let log = StoreAccessLog::new(
         net(),
         safeguard_audit_authorization::SOURCE_LABEL,
@@ -90,7 +86,12 @@ fn audit_access_records(store: &MemoryEventStore) -> Vec<safeguard_audit_core::A
 #[test]
 fn authorized_auditor_reads_within_scope_and_the_access_is_recorded() {
     let mut registry = Registry::new();
-    registered(&mut registry, "alice", AuditorRole::SeniorAuditor, 9_999_999_999);
+    registered(
+        &mut registry,
+        "alice",
+        AuditorRole::SeniorAuditor,
+        9_999_999_999,
+    );
     let authorizer = Authorizer::new(registry, clock_at(1_700_000_000));
     let mut store = MemoryEventStore::new();
 
@@ -110,7 +111,10 @@ fn authorized_auditor_reads_within_scope_and_the_access_is_recorded() {
     assert_eq!(records.len(), 1);
     assert_eq!(records[0].event.kind, EventKind::AuditAccess);
     assert_eq!(records[0].event.details.get("result").unwrap(), "granted");
-    assert_eq!(records[0].event.details.get("action").unwrap(), "generate-report");
+    assert_eq!(
+        records[0].event.details.get("action").unwrap(),
+        "generate-report"
+    );
     assert_eq!(
         records[0].event.details.get("auditor").unwrap(),
         aud("alice").as_str()
@@ -128,7 +132,12 @@ fn authorized_auditor_reads_within_scope_and_the_access_is_recorded() {
 fn unauthorized_action_is_denied_and_recorded_as_denied() {
     let mut registry = Registry::new();
     // Read-only reviewer cannot request protected data.
-    registered(&mut registry, "bob", AuditorRole::ReadOnlyReviewer, 9_999_999_999);
+    registered(
+        &mut registry,
+        "bob",
+        AuditorRole::ReadOnlyReviewer,
+        9_999_999_999,
+    );
     let authorizer = Authorizer::new(registry, clock_at(1_700_000_000));
     let mut store = MemoryEventStore::new();
 
@@ -149,7 +158,12 @@ fn unauthorized_action_is_denied_and_recorded_as_denied() {
 #[test]
 fn out_of_scope_access_is_recorded_as_out_of_scope() {
     let mut registry = Registry::new();
-    registered(&mut registry, "carol", AuditorRole::SeniorAuditor, 9_999_999_999);
+    registered(
+        &mut registry,
+        "carol",
+        AuditorRole::SeniorAuditor,
+        9_999_999_999,
+    );
     let authorizer = Authorizer::new(registry, clock_at(1_700_000_000));
     let mut store = MemoryEventStore::new();
 
@@ -175,7 +189,12 @@ fn out_of_scope_access_is_recorded_as_out_of_scope() {
 fn expired_credential_denies_even_a_full_administrator() {
     // Administrator grant, but the credential expired at 1_700_000_000.
     let mut registry = Registry::new();
-    registered(&mut registry, "dave", AuditorRole::Administrator, 1_700_000_000);
+    registered(
+        &mut registry,
+        "dave",
+        AuditorRole::Administrator,
+        1_700_000_000,
+    );
     let authorizer = Authorizer::new(registry, clock_at(1_700_000_001));
     let mut store = MemoryEventStore::new();
 
@@ -196,7 +215,12 @@ fn privilege_escalation_is_blocked_at_every_hop() {
     // A plain auditor attempts administrator-only actions and out-of-scope
     // targets; each attempt is denied or out-of-scope, never granted.
     let mut registry = Registry::new();
-    registered(&mut registry, "mallory", AuditorRole::Auditor, 9_999_999_999);
+    registered(
+        &mut registry,
+        "mallory",
+        AuditorRole::Auditor,
+        9_999_999_999,
+    );
     let authorizer = Authorizer::new(registry, clock_at(1_700_000_000));
     let mut store = MemoryEventStore::new();
 
@@ -367,7 +391,9 @@ fn replaying_the_same_decision_is_idempotent_in_the_store() {
     let decision = authorizer
         .authorize(&aud("grace"), AccessAction::ReadRecord, &scope_net())
         .unwrap();
-    let entry = authorizer.entry_for_decision(&decision, Some("rec_x")).unwrap();
+    let entry = authorizer
+        .entry_for_decision(&decision, Some("rec_x"))
+        .unwrap();
 
     let mut store = MemoryEventStore::new();
     let log = StoreAccessLog::new(
