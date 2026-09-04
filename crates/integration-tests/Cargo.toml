@@ -15,6 +15,7 @@ safeguard-audit-authorization = { path = "../authorization" }
 safeguard-audit-core = { path = "../audit-core" }
 safeguard-audit-integrity = { path = "../integrity" }
 safeguard-audit-indexer = { path = "../event-indexer" }
+safeguard-audit-investigation = { path = "../investigation" }
 safeguard-audit-memory-store = { path = "../memory-store" }
 safeguard-audit-normalizer = { path = "../event-normalizer" }
 safeguard-audit-storage = { path = "../storage" }
