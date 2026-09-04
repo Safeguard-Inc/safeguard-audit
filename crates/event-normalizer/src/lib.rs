@@ -37,7 +37,9 @@
 pub mod errors;
 pub mod parser;
 pub mod scheme;
+pub mod validator;
 
 pub use errors::{NormalizerError, NormalizerResult};
 pub use parser::{parse, HooksType, ParsedEvent, RawEnvelope, RawHooksEvent};
 pub use scheme::Scheme;
+pub use validator::validate;
