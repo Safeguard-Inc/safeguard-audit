@@ -20,5 +20,6 @@
   "actor": { "network": "testnet", "account": "GASENDERACCOUNTDEMO0000000000000000000000000000000000" },
   "subject": { "network": "testnet", "account": "GCRECEIVERACCOUNTDEMO00000000000000000000000000000000" },
   "outcome": "allowed",
-  "reason": "OK"
+  "reason": "OK",
+  "details": {}
 }
