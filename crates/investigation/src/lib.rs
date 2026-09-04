@@ -52,8 +52,10 @@
 //!   policy.
 
 pub mod errors;
+pub mod store;
 
 pub use errors::{InvestigationError, InvestigationResult};
+pub use store::{CaseStore, InMemoryCaseStore};
 
 /// The crate's stable source label for lifecycle events it derives.
 pub const SOURCE_LABEL: &str = "safeguard-audit-investigation";
