@@ -1,0 +1,3 @@
+# Workspace-wide clippy defaults.
+# Enforced lints live in CI (`cargo clippy --workspace --all-targets -- -D warnings`)
+# so local iterations stay fast.
