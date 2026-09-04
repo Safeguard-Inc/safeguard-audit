@@ -24,17 +24,24 @@
 //! this repository *records and verifies what happened*.
 
 pub mod audit;
+pub mod authorization;
 pub mod correlation;
 pub mod errors;
 pub mod event;
 pub mod identifiers;
+pub mod integrity;
 pub mod pagination;
 pub mod privacy;
 pub mod record;
+pub mod retention;
 pub mod serialization;
 pub mod timestamps;
 
 pub use audit::RECORD_SCHEMA_VERSION;
+pub use authorization::{
+    AccessAction, AccessResult, AccessScope, AuditAccessEntry, AuditorIdentity, AuditorRole,
+    AuthorizationDecision,
+};
 pub use correlation::{
     AccountReference, ContractReference, DecisionResult, EnforcementResultReference,
     LedgerReference, OperationReference, PolicyDecisionReference, PolicyReference, TokenReference,
@@ -43,7 +50,12 @@ pub use correlation::{
 pub use errors::AuditError;
 pub use event::{AuditEvent, DerivationInfo, EventKind, EventOrder, EventProvenance, OriginKind};
 pub use identifiers::EventId;
+pub use integrity::{
+    IntegrityDigest, IntegrityManifest, IntegrityScheme, IntegrityStatus, ManifestEntry,
+    VerificationFailure, VerificationOutcome,
+};
 pub use pagination::{Cursor, Page, PageRequest};
 pub use privacy::DataClassification;
-pub use record::{AuditRecord, IntegrityDigest, RecordIntegrity};
+pub use record::{AuditRecord, RecordIntegrity};
+pub use retention::{RetentionPeriod, RetentionPolicy, RetentionStatus};
 pub use timestamps::{Clock, FixedClock, SystemClock, TimeRange, Timestamp};

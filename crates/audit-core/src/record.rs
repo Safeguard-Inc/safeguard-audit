@@ -25,6 +25,7 @@ use crate::audit::RECORD_SCHEMA_VERSION;
 use crate::errors::{AuditError, AuditResult};
 use crate::event::{AuditEvent, EventKind};
 use crate::identifiers::RecordId;
+use crate::integrity::IntegrityDigest;
 use crate::privacy::{DataClassification, FieldClassifications};
 use crate::timestamps::{Clock, Timestamp};
 
@@ -65,52 +66,6 @@ pub struct RecordIntegrity {
     pub prev_digest: Option<IntegrityDigest>,
     /// Whether this record is chained to its predecessor.
     pub chained: bool,
-}
-
-/// The digest of a canonical record (algorithm + hex value).
-///
-/// The full integrity vocabulary (algorithms, manifests, verification
-/// outcomes) lives in the `integrity` module.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct IntegrityDigest {
-    /// Algorithm label, currently always `sha-256`.
-    pub algorithm: String,
-    /// 64 lowercase hex characters.
-    pub value: String,
-}
-
-impl IntegrityDigest {
-    /// The SHA-256 algorithm label used in wire formats.
-    pub const SHA256: &'static str = "sha-256";
-
-    /// Builds a digest, validating the hex shape (64 lowercase hex chars).
-    pub fn sha256(value: impl Into<String>) -> AuditResult<Self> {
-        let value = value.into();
-        let valid = value.len() == 64
-            && value
-                .chars()
-                .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase());
-        if !valid {
-            return Err(AuditError::invalid_identifier(
-                "integrity digest",
-                "must be 64 lowercase hex chars",
-            ));
-        }
-        Ok(Self {
-            algorithm: Self::SHA256.to_owned(),
-            value,
-        })
-    }
-
-    /// The algorithm label.
-    pub fn algorithm(&self) -> &str {
-        &self.algorithm
-    }
-
-    /// The digest hex value.
-    pub fn value(&self) -> &str {
-        &self.value
-    }
 }
 
 impl AuditRecord {
@@ -332,18 +287,6 @@ mod tests {
         let b = AuditRecord::from_event(frozen_event("same"), &late).unwrap();
         assert_eq!(a.record_id, b.record_id);
         assert_ne!(a.recorded_at, b.recorded_at);
-    }
-
-    #[test]
-    fn digests_validate_sha256_shape() {
-        assert!(IntegrityDigest::sha256("a".repeat(64)).is_ok());
-        assert!(IntegrityDigest::sha256("A".repeat(64)).is_err());
-        assert!(IntegrityDigest::sha256("z".repeat(63)).is_err());
-        assert!(IntegrityDigest::sha256("").is_err());
-        assert_eq!(
-            IntegrityDigest::sha256("a".repeat(64)).unwrap().algorithm(),
-            "sha-256"
-        );
     }
 
     #[test]

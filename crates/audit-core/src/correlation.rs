@@ -232,6 +232,12 @@ impl AccountReference {
     }
 }
 
+impl std::fmt::Display for AccountReference {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.network, self.account)
+    }
+}
+
 /// A contract on a network.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContractReference {
@@ -253,6 +259,12 @@ impl ContractReference {
     /// The contract address.
     pub fn contract(&self) -> &ContractId {
         &self.contract
+    }
+}
+
+impl std::fmt::Display for ContractReference {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.network, self.contract)
     }
 }
 
