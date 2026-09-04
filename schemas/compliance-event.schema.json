@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ComplianceEvent",
+  "description": "The on-chain state-transition event surface emitted by the safeguard-hooks enforcement contract and consumed by the audit indexer. Mirrors the sibling polyrepo's compliance-event contract: only state transitions exist (freeze/unfreeze, bind/unbind, config changes); per-operation approvals are never emitted (spoofable) and denials cannot be emitted (reverts discard events). Events carry addresses and booleans only — never amounts or private financial data.",
+  "type": "object",
+  "required": ["type", "token"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "account_frozen",
+        "account_unfrozen",
+        "token_bound",
+        "token_unbound",
+        "compliance_config_changed"
+      ]
+    },
+    "token": { "type": "string", "description": "The token contract address the transition concerns." },
+    "account": { "type": ["string", "null"], "description": "The frozen/unfrozen account (freeze events only)." },
+    "policy": { "type": ["string", "null"], "description": "The configured policy address after the change, or null (config events only)." },
+    "sac_passthrough": { "type": ["boolean", "null"], "description": "The SAC-passthrough flag after the change (config events only)." },
+    "ledger": { "type": ["integer", "null"], "minimum": 1, "description": "Ledger sequence recorded by the indexer." },
+    "close_time": { "type": ["integer", "null"], "description": "Ledger close time in UTC Unix seconds." },
+    "transaction_hash": { "type": ["string", "null"], "maxLength": 128 },
+    "operation_index": { "type": ["integer", "null"], "minimum": 0 },
+    "event_index": { "type": ["integer", "null"], "minimum": 0 }
+  },
+  "additionalProperties": false
+}

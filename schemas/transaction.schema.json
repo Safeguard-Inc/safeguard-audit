@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Transaction",
+  "description": "Public transaction metadata framing an audited activity. Transaction status is framing data only: it tells derived-event builders whether an operation reverted; it never judges why. No memo or private payload is ever part of this schema.",
+  "type": "object",
+  "required": ["network", "hash", "status"],
+  "properties": {
+    "network": { "type": "string", "pattern": "^[a-z0-9-]{1,32}$" },
+    "hash": { "type": "string", "maxLength": 128 },
+    "ledger_sequence": { "type": ["integer", "null"], "minimum": 1 },
+    "close_time": { "type": ["integer", "null"], "description": "UTC Unix seconds." },
+    "status": { "type": "string", "enum": ["succeeded", "failed", "unknown"] }
+  },
+  "additionalProperties": false
+}

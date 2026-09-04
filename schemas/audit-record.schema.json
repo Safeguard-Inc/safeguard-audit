@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuditRecord",
+  "description": "The persisted unit of audit history: a normalized event wrapped with a deterministic record id, recording time, data classification, redaction table, optional correction links, and the integrity digest slot. Records are append-only; nothing in this schema mutates.",
+  "type": "object",
+  "required": ["record_id", "event", "recorded_at", "schema_version", "classification"],
+  "properties": {
+    "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{32}$", "description": "Deterministically derived from the canonical bytes of the embedded event." },
+    "event": { "$ref": "audit-event.schema.json" },
+    "recorded_at": { "type": "integer", "description": "UTC Unix seconds; when the record was created, never part of its identity." },
+    "schema_version": { "type": "integer", "const": 1 },
+    "classification": {
+      "type": "string",
+      "enum": ["public", "operational", "confidential", "restricted", "highly-restricted"],
+      "description": "The most sensitive classification held by this record's content."
+    },
+    "redactions": {
+      "type": "object",
+      "description": "Field-level classification table used for redaction and export.",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["public", "operational", "confidential", "restricted", "highly-restricted"]
+      }
+    },
+    "supersedes": { "type": ["string", "null"], "description": "Present only on record-corrected records; names the original, which is never mutated." },
+    "correction_reason": { "type": ["string", "null"], "maxLength": 512 },
+    "integrity": {
+      "type": ["object", "null"],
+      "properties": {
+        "digest": { "$ref": "#/$defs/digest" },
+        "prev_digest": { "anyOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }] },
+        "chained": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "digest": {
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "type": "string", "enum": ["sha-256"] },
+        "value": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

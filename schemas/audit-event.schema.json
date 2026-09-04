@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuditEvent",
+  "description": "The provider-neutral normalized event envelope. Raw events from any source (Soroban ledger, RPC feed, simulator, fixture) are converted into this shape before storage. Carries public metadata and references only — never amounts, balances, ciphertexts, or protected values.",
+  "type": "object",
+  "required": ["event_id", "kind", "schema_version", "network", "provenance", "order"],
+  "properties": {
+    "event_id": { "type": "string", "pattern": "^evt_[0-9a-f]{32}$", "description": "Deterministic identity derived from stable source identifiers; never arrival time." },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "transfer-authorized",
+        "transfer-denied",
+        "transfer-flagged",
+        "account-frozen",
+        "account-unfrozen",
+        "token-bound",
+        "token-unbound",
+        "configuration-changed",
+        "compliance-decision",
+        "policy-version-changed",
+        "authorization-changed",
+        "audit-access",
+        "investigation-opened",
+        "investigation-updated",
+        "investigation-closed",
+        "evidence-generated",
+        "report-generated",
+        "record-corrected"
+      ]
+    },
+    "schema_version": { "type": "integer", "const": 1 },
+    "network": { "type": "string", "pattern": "^[a-z0-9-]{1,32}$" },
+    "provenance": {
+      "type": "object",
+      "required": ["origin", "source", "parser_version"],
+      "properties": {
+        "origin": { "type": "string", "enum": ["on-chain", "derived", "imported", "simulated"] },
+        "source": { "type": "string", "maxLength": 64 },
+        "parser_version": { "type": "string", "maxLength": 32 },
+        "derivation": {
+          "type": "object",
+          "required": ["method", "note"],
+          "properties": {
+            "method": { "type": "string", "maxLength": 64 },
+            "source_events": { "type": "array", "items": { "type": "string" } },
+            "note": { "type": "string", "maxLength": 512 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "observed_at": { "type": ["integer", "null"], "description": "UTC Unix seconds." },
+    "order": {
+      "type": "object",
+      "properties": {
+        "ledger_sequence": { "type": ["integer", "null"] },
+        "transaction_position": { "type": ["integer", "null"] },
+        "operation_index": { "type": ["integer", "null"] },
+        "event_index": { "type": ["integer", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "ledger": { "$ref": "#/$defs/ledger_reference" },
+    "transaction": { "$ref": "#/$defs/transaction_reference" },
+    "operation": { "$ref": "#/$defs/operation_reference" },
+    "token": { "$ref": "#/$defs/token_reference" },
+    "actor": { "$ref": "#/$defs/account_reference" },
+    "subject": { "$ref": "#/$defs/account_reference" },
+    "decision": { "$ref": "#/$defs/policy_decision_reference" },
+    "enforcement": { "$ref": "#/$defs/enforcement_reference" },
+    "outcome": { "type": "string", "enum": ["allowed", "denied", "flagged"] },
+    "reason": { "type": "string", "pattern": "^[A-Z0-9._-]{1,64}$" },
+    "details": {
+      "type": "object",
+      "description": "Short validated extension details; keys are constrained by the normalizer.",
+      "additionalProperties": { "type": "string", "maxLength": 1024 }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "account_reference": {
+      "type": "object",
+      "required": ["network", "account"],
+      "properties": {
+        "network": { "type": "string" },
+        "account": { "type": "string", "maxLength": 128 }
+      },
+      "additionalProperties": false
+    },
+    "ledger_reference": {
+      "type": "object",
+      "required": ["network", "sequence"],
+      "properties": {
+        "network": { "type": "string" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "close_time": { "type": ["integer", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "transaction_reference": {
+      "type": "object",
+      "required": ["network", "hash"],
+      "properties": {
+        "network": { "type": "string" },
+        "hash": { "type": "string", "maxLength": 128 }
+      },
+      "additionalProperties": false
+    },
+    "operation_reference": {
+      "type": "object",
+      "required": ["transaction", "index"],
+      "properties": {
+        "transaction": { "$ref": "#/$defs/transaction_reference" },
+        "index": { "type": "integer", "minimum": 0 },
+        "op_type": { "type": ["string", "null"], "maxLength": 64 }
+      },
+      "additionalProperties": false
+    },
+    "token_reference": {
+      "type": "object",
+      "required": ["network"],
+      "properties": {
+        "network": { "type": "string" },
+        "contract": { "type": ["object", "null"] },
+        "asset_code": { "type": ["string", "null"], "maxLength": 12 },
+        "issuer": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "policy_decision_reference": {
+      "type": "object",
+      "required": ["policy", "result"],
+      "properties": {
+        "policy": { "type": "object" },
+        "result": { "type": "string", "enum": ["allowed", "denied", "flagged"] },
+        "reason": { "type": ["string", "null"] },
+        "decided_at": { "type": ["integer", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "enforcement_reference": {
+      "type": "object",
+      "required": ["hook", "hook_version", "result"],
+      "properties": {
+        "hook": { "type": "string", "maxLength": 128 },
+        "hook_version": { "type": "string", "maxLength": 32 },
+        "result": { "type": "string", "enum": ["allowed", "denied", "flagged"] },
+        "reason": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  }
+}

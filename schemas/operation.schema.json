@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Operation",
+  "description": "A single operation inside a transaction: its zero-based index and optional type label. Public metadata only.",
+  "type": "object",
+  "required": ["network", "transaction_hash", "index"],
+  "properties": {
+    "network": { "type": "string", "pattern": "^[a-z0-9-]{1,32}$" },
+    "transaction_hash": { "type": "string", "maxLength": 128 },
+    "index": { "type": "integer", "minimum": 0 },
+    "op_type": { "type": ["string", "null"], "maxLength": 64 }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EnforcementResult",
+  "description": "A reference to the safeguard-hooks enforcement that processed an operation: which hook version ran and what it decided. Historical correlation only — the audit layer never duplicates hook logic. Public metadata only.",
+  "type": "object",
+  "required": ["hook", "hook_version", "result"],
+  "properties": {
+    "hook": { "type": "string", "maxLength": 128 },
+    "hook_version": { "type": "string", "maxLength": 32 },
+    "result": { "type": "string", "enum": ["allowed", "denied", "flagged"] },
+    "reason": { "type": ["string", "null"], "pattern": "^[A-Z0-9._-]{1,64}$" }
+  },
+  "additionalProperties": false
+}

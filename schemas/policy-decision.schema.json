@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PolicyDecision",
+  "description": "A recorded compliance decision: the policy contract and version that produced it (historical references — nothing here re-evaluates policy), the result, and an optional machine-readable reason code. Public metadata only.",
+  "type": "object",
+  "required": ["policy", "version", "result"],
+  "properties": {
+    "policy": { "type": "string", "maxLength": 128, "description": "The policy contract/address." },
+    "version": { "type": "string", "maxLength": 32 },
+    "digest": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$", "description": "Optional digest of the policy body at that version." },
+    "result": { "type": "string", "enum": ["allowed", "denied", "flagged"] },
+    "reason": { "type": ["string", "null"], "pattern": "^[A-Z0-9._-]{1,64}$" },
+    "decided_at": { "type": ["integer", "null"], "description": "UTC Unix seconds." }
+  },
+  "additionalProperties": false
+}
