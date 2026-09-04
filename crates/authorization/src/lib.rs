@@ -60,6 +60,7 @@
 pub mod credentials;
 pub mod errors;
 pub mod permissions;
+pub mod registry;
 pub mod roles;
 pub mod scopes;
 
