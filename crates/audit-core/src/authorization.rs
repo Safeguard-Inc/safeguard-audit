@@ -364,6 +364,11 @@ impl AuditAccessEntry {
         &self.scope
     }
 
+    /// The target reference label, when present.
+    pub fn target(&self) -> Option<&str> {
+        self.target.as_deref()
+    }
+
     /// The access result.
     pub fn result(&self) -> AccessResult {
         self.result

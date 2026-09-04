@@ -26,10 +26,14 @@
 //! by an authorized process from authoritative transaction metadata. The
 //! audit trail records the distinction instead of blurring it.
 
+pub mod audit;
+pub mod authorization;
 pub mod compliance;
 pub mod errors;
 pub mod event_id;
 pub mod freeze;
+pub mod investigation;
+pub mod policy;
 pub mod sanctions;
 pub mod transaction;
 pub mod transfer;

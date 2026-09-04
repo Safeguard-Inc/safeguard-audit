@@ -53,7 +53,10 @@ pub use correlation::{
 pub use errors::{AuditError, AuditResult};
 pub use event::{AuditEvent, DerivationInfo, EventKind, EventOrder, EventProvenance, OriginKind};
 pub use evidence::{EvidenceArtifact, EvidenceKind, EvidenceProvenance};
-pub use identifiers::{AccountId, ContractId, EventId, NetworkId, ReasonCode, TransactionHash};
+pub use identifiers::{
+    AccessEntryId, AccountId, AuditorId, CaseId, ContractId, EventId, EvidenceId, FindingId,
+    ManifestId, NetworkId, NoteId, ReasonCode, RecordId, ReportId, RequestId, TransactionHash,
+};
 pub use integrity::{
     IntegrityDigest, IntegrityManifest, IntegrityScheme, IntegrityStatus, ManifestEntry,
     VerificationFailure, VerificationOutcome,
