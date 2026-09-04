@@ -87,6 +87,40 @@ access trail that records its outcomes:
   example; and `authorization`, `auditor-model`, and `access-control`
   docs.
 
+### Phase 4 — Investigation services (complete)
+
+The case workflow that turns denied or flagged operations into structured,
+auditable investigations:
+
+- **`safeguard-audit-investigation`** — the `CaseStore` contract for
+  mutable case state (current state; history lives in the audit store as
+  lifecycle events) with an in-memory implementation, and `CaseService`,
+  the workflow facade: open (deterministic case id from network + case
+  key), assign, status transitions validated by the core model, link
+  audit records (verified to exist in the audit store — a case never
+  references a ghost), findings and notes with deterministic per-case
+  ids, and closure that requires a recorded reason and is terminal
+  unless an administrator reopens the case. Every step is authorized
+  through the real authorizer (`CreateInvestigation` to open or mutate,
+  administrator role to reopen) and projected as an
+  `investigation-opened` / `investigation-updated` /
+  `investigation-closed` event.
+- **Lifecycle identity** — two modeling fixes surfaced by the service:
+  the event kind is now explicit (`LifecycleKind`), so updates that
+  leave a case open or reopen a closed case are never misrecorded as a
+  second open; and each step carries its zero-based sequence in the
+  case history as part of the event identity, so distinct steps of one
+  case never collide in the store while re-runs stay idempotent.
+- **Scenarios, vectors, invariants** — end-to-end denial-to-closed tests
+  asserting both views (case-store state and audit-store history),
+  `test-vectors/investigation/lifecycle` as an executable transition
+  corpus (all legal and illegal moves), and invariants for deterministic
+  case ids and collision-free step identity under a fixed clock.
+- **Fixtures, example, docs** — schema-validated closed and escalated
+  case fixtures alongside the open case; the runnable
+  `create-investigation` example; and `investigation.md` covering the
+  two-store model, the workflow, and the authorization gates.
+
 ### Phase 2 — Event pipeline and integrity (complete)
 
 The ingestion, normalization, indexing, and tamper-evidence layer:
@@ -132,8 +166,8 @@ The ingestion, normalization, indexing, and tamper-evidence layer:
 
 ### Later phases
 
-Phases 5+ (investigation services, evidence generation, reporting,
-privacy enforcement, Soroban/RPC adapters, the simulator bridge, the
-optional on-chain registry, and security/performance hardening) are
-planned; see `docs/architecture.md` for the map and this file will
-record each as it lands.
+Phases 6+ (evidence generation, reporting, privacy enforcement,
+Soroban/RPC adapters, the simulator bridge, the optional on-chain
+registry, and security/performance hardening) are planned; see
+`docs/architecture.md` for the map and this file will record each as it
+lands.
