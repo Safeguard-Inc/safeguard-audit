@@ -37,12 +37,14 @@
 pub mod classifier;
 pub mod errors;
 pub mod metadata;
+pub mod normalizer;
 pub mod parser;
 pub mod scheme;
 pub mod validator;
 
 pub use classifier::{classify, NormalizeConfig};
 pub use errors::{NormalizerError, NormalizerResult};
+pub use normalizer::{NormalizedEvent, Normalizer};
 pub use parser::{parse, HooksType, ParsedEvent, RawEnvelope, RawHooksEvent};
 pub use scheme::Scheme;
 pub use validator::validate;
