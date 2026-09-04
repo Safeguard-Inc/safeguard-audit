@@ -133,11 +133,13 @@ impl ReportService {
         .with_rows(rows)
         .with_summary(summary);
 
-        let digest = hash_bytes(&report.canonical_bytes().map_err(ReportingError::from_core)?);
+        let digest = hash_bytes(
+            &report
+                .canonical_bytes()
+                .map_err(ReportingError::from_core)?,
+        );
         report = report.with_digest(digest);
-        report
-            .validate()
-            .map_err(ReportingError::from_core)?;
+        report.validate().map_err(ReportingError::from_core)?;
 
         record_report(
             &ReportLifecycle {
@@ -343,7 +345,9 @@ mod tests {
         )
     }
 
-    fn seeded(seeds: &[(&str, EventKind, DecisionResult, Option<&str>, Timestamp)]) -> MemoryEventStore {
+    fn seeded(
+        seeds: &[(&str, EventKind, DecisionResult, Option<&str>, Timestamp)],
+    ) -> MemoryEventStore {
         let mut store = MemoryEventStore::new();
         for (seed, kind, outcome, reason, at) in seeds {
             let mut event = AuditEvent::new(
@@ -395,11 +399,32 @@ mod tests {
     #[test]
     fn denied_transactions_report_summarizes_and_rows_only_denials() {
         let actor = auditor("senior-1");
-        let svc = service(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &actor));
+        let svc = service(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &actor,
+        ));
         let mut store = seeded(&[
-            ("a", EventKind::TransferDenied, DecisionResult::Denied, Some("POLICY_DENIED"), Timestamp::from_unix_seconds(100)),
-            ("b", EventKind::TransferAuthorized, DecisionResult::Allowed, None, Timestamp::from_unix_seconds(200)),
-            ("c", EventKind::TransferDenied, DecisionResult::Denied, Some("POLICY_DENIED"), Timestamp::from_unix_seconds(300)),
+            (
+                "a",
+                EventKind::TransferDenied,
+                DecisionResult::Denied,
+                Some("POLICY_DENIED"),
+                Timestamp::from_unix_seconds(100),
+            ),
+            (
+                "b",
+                EventKind::TransferAuthorized,
+                DecisionResult::Allowed,
+                None,
+                Timestamp::from_unix_seconds(200),
+            ),
+            (
+                "c",
+                EventKind::TransferDenied,
+                DecisionResult::Denied,
+                Some("POLICY_DENIED"),
+                Timestamp::from_unix_seconds(300),
+            ),
         ]);
         let req = request(
             ReportKind::DeniedTransactions,
@@ -418,15 +443,28 @@ mod tests {
     #[test]
     fn the_generation_is_recorded_on_the_trail() {
         let actor = auditor("senior-1");
-        let svc = service(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &actor));
-        let mut store = seeded(&[
-            ("a", EventKind::TransferDenied, DecisionResult::Denied, None, Timestamp::from_unix_seconds(100)),
-        ]);
-        let req = request(ReportKind::DeniedTransactions, ReportQuery::with_outcome(DecisionResult::Denied), &actor);
+        let svc = service(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &actor,
+        ));
+        let mut store = seeded(&[(
+            "a",
+            EventKind::TransferDenied,
+            DecisionResult::Denied,
+            None,
+            Timestamp::from_unix_seconds(100),
+        )]);
+        let req = request(
+            ReportKind::DeniedTransactions,
+            ReportQuery::with_outcome(DecisionResult::Denied),
+            &actor,
+        );
         svc.generate(&mut store, &req).unwrap();
         let page = store
             .query(
-                &safeguard_audit_storage::AuditQuery::builder().build().unwrap(),
+                &safeguard_audit_storage::AuditQuery::builder()
+                    .build()
+                    .unwrap(),
                 &PageRequest::new(10).unwrap(),
             )
             .unwrap();
@@ -437,13 +475,24 @@ mod tests {
     #[test]
     fn generation_is_reproducible_under_a_fixed_clock() {
         let actor = auditor("senior-1");
-        let svc = service(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &actor));
-        let store = seeded(&[
-            ("a", EventKind::TransferDenied, DecisionResult::Denied, None, Timestamp::from_unix_seconds(100)),
-        ]);
+        let svc = service(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &actor,
+        ));
+        let store = seeded(&[(
+            "a",
+            EventKind::TransferDenied,
+            DecisionResult::Denied,
+            None,
+            Timestamp::from_unix_seconds(100),
+        )]);
         let mut s1 = store.clone();
         let mut s2 = store.clone();
-        let req = request(ReportKind::DeniedTransactions, ReportQuery::with_outcome(DecisionResult::Denied), &actor);
+        let req = request(
+            ReportKind::DeniedTransactions,
+            ReportQuery::with_outcome(DecisionResult::Denied),
+            &actor,
+        );
         let first = svc.generate(&mut s1, &req).unwrap();
         let second = svc.generate(&mut s2, &req).unwrap();
         assert_eq!(first, second);
@@ -453,7 +502,10 @@ mod tests {
     #[test]
     fn classification_ceiling_excludes_protected_records() {
         let actor = auditor("senior-1");
-        let svc = service(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &actor));
+        let svc = service(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &actor,
+        ));
         let mut store = MemoryEventStore::new();
         let mut protected = AuditRecord::from_event_classified(
             AuditEvent::new(
@@ -477,13 +529,20 @@ mod tests {
             &actor,
         );
         let report = svc.generate(&mut store, &req).unwrap();
-        assert_eq!(report.summary().total_records, 0, "restricted records are excluded at a confidential ceiling");
+        assert_eq!(
+            report.summary().total_records,
+            0,
+            "restricted records are excluded at a confidential ceiling"
+        );
     }
 
     #[test]
     fn unauthorized_actors_are_denied() {
         let actor = auditor("reviewer-1");
-        let svc = service(authorizer(safeguard_audit_core::AuditorRole::ReadOnlyReviewer, &actor));
+        let svc = service(authorizer(
+            safeguard_audit_core::AuditorRole::ReadOnlyReviewer,
+            &actor,
+        ));
         let mut store = MemoryEventStore::new();
         let req = request(ReportKind::ComplianceActivity, ReportQuery::all(), &actor);
         let err = svc.generate(&mut store, &req).unwrap_err();
@@ -493,7 +552,10 @@ mod tests {
     #[test]
     fn nonsensical_ceilings_are_rejected() {
         let actor = auditor("senior-1");
-        let svc = service(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &actor));
+        let svc = service(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &actor,
+        ));
         let mut store = MemoryEventStore::new();
         let req = request(
             ReportKind::ComplianceActivity,

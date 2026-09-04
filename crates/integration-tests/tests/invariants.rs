@@ -679,9 +679,9 @@ fn invariant_evidence_packages_are_reproducible_and_tamper_evident() {
         serde_json::from_value(value).unwrap();
     assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)
         .unwrap()
-        .verified());    let mut value = serde_json::to_value(&first).unwrap();
-    value["manifest"]["entries"][1]["digest"]["value"] =
-        serde_json::Value::String("dd".repeat(32));
+        .verified());
+    let mut value = serde_json::to_value(&first).unwrap();
+    value["manifest"]["entries"][1]["digest"]["value"] = serde_json::Value::String("dd".repeat(32));
     let tampered: safeguard_audit_evidence::EvidencePackage =
         serde_json::from_value(value).unwrap();
     assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)
@@ -697,7 +697,7 @@ fn invariant_reports_are_reproducible_and_bounded() {
     // excluded from a report body — a report never leaks protected data.
     use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
     use safeguard_audit_core::{
-        AccessScope, AuditRecord, AuditorId, AuditorRole, AuditEvent, DataClassification,
+        AccessScope, AuditEvent, AuditRecord, AuditorId, AuditorRole, DataClassification,
         EventKind, EventProvenance, FixedClock, NetworkId, OriginKind, ReportKind, ReportQuery,
         ReportRequest, Timestamp, VersionLabel,
     };
@@ -727,12 +727,16 @@ fn invariant_reports_are_reproducible_and_bounded() {
         ("rep-a", DataClassification::Confidential),
         ("rep-b", DataClassification::Restricted),
     ] {
-        let event = AuditEvent::new(
+        let mut event = AuditEvent::new(
             safeguard_audit_core::EventId::derive(&[seed]),
             EventKind::TransferDenied,
             net.clone(),
             EventProvenance::new(OriginKind::OnChain, "soroban", parser.clone()).unwrap(),
         );
+        event.transaction = Some(safeguard_audit_core::TransactionReference::new(
+            net.clone(),
+            safeguard_audit_core::TransactionHash::new(&format!("{seed:0<64}")).unwrap(),
+        ));
         let record = AuditRecord::from_event_classified(event, classification, &clock).unwrap();
         assert_eq!(store.insert(record), Ok(InsertOutcome::Inserted));
     }
@@ -778,7 +782,8 @@ fn invariant_reports_are_reproducible_and_bounded() {
     );
     let bounded = service.generate(&mut store_c, &ceiling_request).unwrap();
     assert_eq!(
-        bounded.summary().total_records, 1,
+        bounded.summary().total_records,
+        1,
         "restricted records are excluded at a restricted ceiling"
     );
     assert_eq!(bounded.rows().len(), 1);
