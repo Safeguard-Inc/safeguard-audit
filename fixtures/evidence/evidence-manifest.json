@@ -1,22 +1,32 @@
 {
-  "manifest_id": "mfst_1234567890abcdef1234567890abcdef",
-  "artifact": "evid_1234567890abcdef1234567890abcdef",
+  "manifest_id": "mfst_a9b78bf6e9bf5c054925f731b90f99f2",
+  "artifact": "evid_14ebc3110186221ee27e4ffe22d1ab1d",
   "schema_version": 1,
-  "generated_at": 1700000600,
-  "software_version": "0.2.0",
+  "generated_at": 1700000500,
+  "software_version": "0.4.0",
   "parser_version": "1.0.0",
   "network": "testnet",
   "from_ledger": 420,
   "to_ledger": 421,
-  "record_count": 1,
+  "record_count": 2,
   "entries": [
     {
-      "record_id": "rec_abababababababababababababababab",
-      "digest": { "algorithm": "sha-256", "value": "3333333333333333333333333333333333333333333333333333333333333333" }
+      "record_id": "rec_49fe9d76af9bbcf946d50a255d7ec425",
+      "digest": {
+        "algorithm": "sha-256",
+        "value": "aba9d341feb216092330ac079330b871c0fdfb9591e4123f2dbc04481d3b063c"
+      }
+    },
+    {
+      "record_id": "rec_f33fdaeb2d5c77f0775c30c20618709c",
+      "digest": {
+        "algorithm": "sha-256",
+        "value": "a2ee5da5bf00a35058c4ca5c15eb9654ee9d7a59c5792579a011d1ab296ca9f6"
+      }
     }
   ],
   "aggregate_digest": {
     "algorithm": "sha-256",
-    "value": "8888888888888888888888888888888888888888888888888888888888888888"
+    "value": "2cf7f68a03b28812ebef0bd08fd03b5bf9f58db654f49e49d94ae6f81abd58ea"
   }
 }

@@ -1,18 +1,24 @@
 {
-  "evidence_id": "evid_1234567890abcdef1234567890abcdef",
+  "evidence_id": "evid_14ebc3110186221ee27e4ffe22d1ab1d",
   "kind": "transaction-evidence",
   "provenance": {
-    "source_records": ["rec_abcdefabcdefabcdefabcdefabcdefabcd"],
-    "source_events": ["evt_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+    "source_records": [
+      "rec_49fe9d76af9bbcf946d50a255d7ec425",
+      "rec_f33fdaeb2d5c77f0775c30c20618709c"
+    ],
+    "source_events": [
+      "evt_baef70e32457be22c349fd2fda3b2c44",
+      "evt_ae2434615a3d083500b59c7799d0ec52"
+    ],
     "parser_version": "1.0.0",
-    "generator_version": "0.2.0"
+    "generator_version": "0.4.0"
   },
   "generated_at": 1700000500,
-  "generated_by": "aud_01010101010101010101010101010101",
+  "generated_by": "aud_f4692fd72db48f8ec6b3e598ed975ad0",
   "schema_version": 1,
   "digest": {
     "algorithm": "sha-256",
-    "value": "4444444444444444444444444444444444444444444444444444444444444444"
+    "value": "f1309cb77fc81a28c126b8b347b0c4312f19387a48942a5646ee5b752a3b338d"
   },
-  "manifest_id": "mfst_1234567890abcdef1234567890abcdef"
+  "manifest_id": "mfst_a9b78bf6e9bf5c054925f731b90f99f2"
 }
