@@ -9,14 +9,17 @@
 //! nothing more, even when serialized.
 
 use safeguard_audit_authorization::scopes::covers_classification;
+use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
 use safeguard_audit_core::{
-    AccessScope, AuditEvent, AuditRecord, DataClassification, DerivationInfo, EventId, EventKind,
-    EventProvenance, FixedClock, NetworkId, OriginKind, PageRequest, Timestamp, VersionLabel,
+    AccessScope, AuditEvent, AuditRecord, AuditorId, AuditorRole, DataClassification,
+    DerivationInfo, EventId, EventKind, EventProvenance, FixedClock, NetworkId, OriginKind,
+    PageRequest, ReportKind, ReportQuery, ReportRequest, Timestamp, VersionLabel,
 };
 use safeguard_audit_memory_store::MemoryEventStore;
 use safeguard_audit_privacy::redaction::is_disclosable;
 use safeguard_audit_privacy::{disclosure_ceiling, RecordDisclosure};
-use safeguard_audit_storage::{AuditQuery, EventStore};
+use safeguard_audit_reporting::ReportService;
+use safeguard_audit_storage::{AuditQuery, EventStore, InsertOutcome};
 
 /// Every classification level, most public to most protected.
 const LEVELS: [DataClassification; 5] = [
@@ -175,4 +178,98 @@ fn a_stored_record_discloses_exactly_its_covered_fields() {
     let all_view = RecordDisclosure::disclose(fetched, disclosure_ceiling(&[AccessScope::All]));
     assert_eq!(all_view.details.get("amount_ciphertext").unwrap(), secret);
     assert!(all_view.redacted_keys.is_empty());
+}
+
+#[test]
+fn a_service_generated_record_discloses_its_operational_attribution() {
+    // Drive the real stack: a denied transfer is recorded, the reporting
+    // service generates a report over it, and the report-generated record
+    // that lands on the trail carries the declared field policy — so a
+    // reader at a confidential ceiling sees the operational attribution
+    // facts instead of a wall of redaction markers.
+    let actor = AuditorId::derive(&["senior-1"]);
+    let clock = FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000));
+    let mut registry = Registry::new();
+    registry
+        .register(
+            Grant::new(actor.clone(), AuditorRole::SeniorAuditor)
+                .with_scope(AccessScope::Network(net()))
+                .with_credential(Credential::new(
+                    actor.clone(),
+                    "material",
+                    Timestamp::from_unix_seconds(9_999_999_999),
+                )),
+        )
+        .unwrap();
+    let authorizer = Authorizer::new(registry, clock);
+    let service = ReportService::new(
+        net(),
+        "safeguard-audit-reporting",
+        VersionLabel::new("1.0.0").unwrap(),
+        VersionLabel::new("0.6.0").unwrap(),
+        clock,
+        authorizer,
+    );
+
+    let mut audit = MemoryEventStore::new();
+    let mut denied = AuditEvent::new(
+        EventId::derive(&["denied-1"]),
+        EventKind::TransferDenied,
+        net(),
+        EventProvenance::new(
+            OriginKind::Derived,
+            "safeguard-audit",
+            VersionLabel::new("1.0.0").unwrap(),
+        )
+        .unwrap()
+        .with_derivation(
+            DerivationInfo::new(
+                "failed-tx-analysis",
+                vec![],
+                "reconstructed from the failed transaction",
+            )
+            .unwrap(),
+        ),
+    );
+    denied.outcome = Some(safeguard_audit_core::DecisionResult::Denied);
+    denied.observed_at = Some(Timestamp::from_unix_seconds(100));
+    let record = AuditRecord::from_event_classified(
+        denied,
+        DataClassification::Confidential,
+        &FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000)),
+    )
+    .unwrap();
+    assert_eq!(audit.insert(record), Ok(InsertOutcome::Inserted));
+
+    let request = ReportRequest::new(
+        ReportKind::DeniedTransactions,
+        ReportQuery::with_outcome(safeguard_audit_core::DecisionResult::Denied),
+        actor,
+        Timestamp::from_unix_seconds(1_699_999_999),
+    );
+    service.generate(&mut audit, &request).unwrap();
+
+    // Find the report-generated record the service recorded on the trail.
+    let page = audit
+        .query(
+            &AuditQuery::builder().build().unwrap(),
+            &PageRequest::new(10).unwrap(),
+        )
+        .unwrap();
+    let generated = page
+        .items()
+        .iter()
+        .find(|r| r.event.kind == EventKind::ReportGenerated)
+        .expect("generation is recorded on the trail");
+    assert!(!generated.redactions.is_empty());
+
+    // At a confidential ceiling the declared operational fields disclose;
+    // nothing protected is ever in the serialized projection.
+    let view = RecordDisclosure::disclose(generated, Some(DataClassification::Confidential));
+    assert_eq!(view.details.get("kind").unwrap(), "denied-transactions");
+    assert_eq!(view.details.get("records").unwrap(), "1");
+    assert!(!view.details.values().any(|v| v == "[redacted]"));
+    assert!(view.redacted_keys.is_empty());
+    let json = serde_json::to_string(&view).unwrap();
+    assert!(json.contains("denied-transactions"));
 }
