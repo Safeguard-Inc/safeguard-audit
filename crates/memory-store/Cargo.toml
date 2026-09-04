@@ -1,0 +1,15 @@
+[package]
+name = "safeguard-audit-memory-store"
+description = "In-memory EventStore for the Safeguard audit layer: deterministic ordering, idempotent dedup, and cursor pagination for tests, fixtures, and single-node development."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-storage = { path = "../storage" }

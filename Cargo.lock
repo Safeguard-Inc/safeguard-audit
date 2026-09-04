@@ -113,6 +113,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "safeguard-audit-memory-store"
+version = "0.1.0"
+dependencies = [
+ "safeguard-audit-core",
+ "safeguard-audit-storage",
+]
+
+[[package]]
 name = "safeguard-audit-storage"
 version = "0.1.0"
 dependencies = [

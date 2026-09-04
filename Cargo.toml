@@ -4,6 +4,7 @@ members = [
     "crates/audit-core",
     "crates/audit-events",
     "crates/storage",
+    "crates/memory-store",
 ]
 
 [workspace.package]
