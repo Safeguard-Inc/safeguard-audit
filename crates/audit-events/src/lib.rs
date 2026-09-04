@@ -28,6 +28,7 @@
 
 pub mod audit;
 pub mod authorization;
+pub mod classify;
 pub mod compliance;
 pub mod errors;
 pub mod event_id;
@@ -41,6 +42,7 @@ pub mod transaction;
 pub mod transfer;
 
 pub use authorization::{access_recorded_event, AuthorizationChange, ChangeKind};
+pub use classify::detail_policy;
 pub use errors::{EventError, EventResult};
 pub use event_id::{derive_event_id, derived_event_id, onchain_event_id, EventSlot};
 pub use evidence::EvidenceLifecycle;
