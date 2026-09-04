@@ -89,6 +89,11 @@ crates/
                      projecting onto the normalized envelope
   storage/           EventStore contract: query model, position keys, write batches
   memory-store/      In-memory EventStore for tests/fixtures/dev (non-durable)
+  event-normalizer/  Deterministic parse-validate-classify pipeline per scheme
+  event-indexer/     Checkpointed, idempotent ingestion; cursors and replay
+  integrity/         Canonical hashing, chained digests, manifests, verification
+  authorization/     Role matrix, scope containment, credentials, access log
+  investigation/     Case store + lifecycle service; findings, notes, closure
 schemas/             17 JSON Schemas for the wire contracts (checked in CI)
 fixtures/            Synthetic schema-valid instances for every contract
 interfaces/          Planned: cross-repo protocol references (events to/from hooks)
@@ -97,35 +102,44 @@ docs/                Architecture, model, and operations documentation
 .github/             CI + security workflows and the PR template
 ```
 
-**Layout notes.** Phase 1 implements the domain foundation only; the
-remaining spec surface (normalizer, indexer, integrity hashing, service
-crates, Soroban/RPC/simulator adapters, the optional audit-registry
-contract, the CLI) lands in later phases and is mapped in
-`docs/architecture.md`, which also records any consolidation between the
-spec module tree and its real home — the same discipline the sibling
-repos follow.
+**Layout notes.** The spec module tree lands phase by phase and any
+consolidation is recorded in `docs/architecture.md` — the same
+interfaces-as-cross-repo-protocol discipline the sibling repos follow.
 
-## Status: Phase 1 complete (domain foundation)
+## Status: Phases 1-4 complete
 
-Phase 1 — the domain foundation — is implemented, tested, and pushed:
+Implemented, tested, and pushed to `main`:
 
-- `audit-core`: the full vocabulary — deterministic identifiers, UTC
+- **Phase 1 — Domain foundation.** `audit-core` (deterministic ids, UTC
   timestamps with injectable clocks, cursor pagination, correlation
-  references, data classification, the normalized 18-kind `AuditEvent`
-  envelope with observed/derived provenance, the append-only
-  `AuditRecord` with correction links, integrity/report/investigation/
-  evidence/authorization/retention models, canonical serialization.
-- `audit-events`: deterministic event identity (never arrival time) and
-  the semantic events that project onto the envelope.
-- `storage` + `memory-store`: the append-only `EventStore` contract with
-  idempotent dedup, atomic batches, deterministic ordering, stable cursor
-  paging — and its in-memory implementation (tests/fixtures/dev only).
-- `schemas/` + `fixtures/` + `scripts/check_schemas.py`: 17 wire-contract
-  schemas, synthetic instances, and a strict checker gating them in CI.
-- Governance and CI: CONTRIBUTING/SECURITY/CODE_OF_CONDUCT/CHANGELOG, the
-  fmt·clippy·tests·schemas gate, and weekly dependency audits.
+  references, data classification, the 18-kind `AuditEvent` envelope with
+  observed/derived provenance, append-only `AuditRecord` with correction
+  links, integrity/report/investigation/evidence/authorization/retention
+  models, canonical serialization), `audit-events` (deterministic event
+  identity, semantic events), `storage` + `memory-store` (append-only
+  `EventStore` with idempotent dedup, atomic batches, deterministic
+  ordering), 17 schemas + fixtures + strict checker, governance and CI.
+- **Phase 2 — Event pipeline & integrity.** `EventSource` boundary,
+  `event-normalizer` (strict per-scheme parse → validate → classify),
+  `event-indexer` (checkpointed idempotent `run_once`, cursors, bounded
+  replay), `integrity` (canonical record digests, chained scheme,
+  manifests, verification, tamper location), executable
+  `test-vectors/normalization`, end-to-end pipeline tests and invariants,
+  `ingest-event`/`verify-record` examples.
+- **Phase 3 — Authorization.** `authorization` crate: role matrix,
+  per-identity permission sets, scope containment, expiring credentials,
+  the auditor registry, the authorizer, and store-backed audit-access
+  logging with full attribution (auditor/time/classification). Scenario
+  and invariant suites, `test-vectors/authorization`, decision fixtures,
+  the `authorize-access` example.
+- **Phase 4 — Investigation.** `investigation` crate: `CaseStore` +
+  in-memory store, the `CaseService` workflow (open, assign, transition,
+  link records, findings, notes, close with reason, admin reopen), and
+  lifecycle event projection with explicit step kinds and sequence
+  identity. End-to-end denial-to-closed scenarios, lifecycle vector
+  corpus, closed/escalated fixtures, the `create-investigation` example.
 
-Phases 2+ are defined in `docs/architecture.md`.
+Phases 5+ are defined in `docs/architecture.md`.
 
 ## Development
 
