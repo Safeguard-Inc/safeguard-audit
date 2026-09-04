@@ -79,9 +79,13 @@ INSTANCES = {
     "auditor.schema.json": [
         "fixtures/auditors/authorized/auditor.json",
         "fixtures/auditors/scoped/auditor.json",
+        "fixtures/auditors/unauthorized/auditor.json",
     ],
     "authorization.schema.json": [
         "fixtures/authorization/decision.json",
+        "fixtures/authorization/decision-granted.json",
+        "fixtures/authorization/decision-denied.json",
+        "fixtures/authorization/decision-out-of-scope.json",
     ],
     "investigation.schema.json": [
         "fixtures/investigations/open/case.json",

@@ -1,6 +1,6 @@
 {
   "allowed": true,
-  "action": "read-record",
+  "action": "generate-report",
   "scope": "network:testnet",
   "reason": "GRANTED",
   "decided_by": "aud_01010101010101010101010101010101",

@@ -1,0 +1,8 @@
+{
+  "allowed": false,
+  "action": "read-record",
+  "scope": "network:mainnet",
+  "reason": "SCOPE_OUT_OF_BOUNDS",
+  "decided_by": "aud_02020202020202020202020202020202",
+  "decided_at": 1700000820
+}

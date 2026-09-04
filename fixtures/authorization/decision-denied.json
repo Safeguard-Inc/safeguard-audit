@@ -1,0 +1,8 @@
+{
+  "allowed": false,
+  "action": "request-protected-data",
+  "scope": "network:testnet",
+  "reason": "ACTION_DENIED",
+  "decided_by": "aud_03030303030303030303030303030303",
+  "decided_at": 1700000810
+}
