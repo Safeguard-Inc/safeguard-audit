@@ -164,10 +164,47 @@ The ingestion, normalization, indexing, and tamper-evidence layer:
   demos; `event-ingestion`, `event-normalization`, `indexing`, and
   `evidence-integrity` docs.
 
+### Phase 5 — Evidence services (complete)
+
+Turning verified audit records into exportable, independently checkable
+evidence packages:
+
+- **`safeguard-audit-evidence`** — the `EvidenceBuilder` pipeline
+  (authorize the acting auditor, prove every named record exists in the
+  audit store, refuse records whose stored digest no longer matches
+  their body, canonicalize the record order, seal); the `EvidencePackage`
+  model pairing an `EvidenceArtifact` (content digest over its canonical
+  bytes, integrity slots excluded) with an artifact-linked
+  `EvidenceManifest` (per-record digests recomputed from record bodies,
+  an aggregate over the inventory, and the artifact/parser/network
+  context); and two-depth verification — structure-only for exported
+  packages (artifact digest + manifest aggregate) and store-backed
+  (every per-record digest recomputed from the fetched bodies). Every
+  generation is itself recorded as a derived `evidence-generated` event
+  carrying the artifact id, kind, record count, manifest reference, and
+  digest.
+- **Integrity gate** — one architectural alignment: the pipeline seals
+  history at verification time, so stored records may carry no integrity
+  block. The gate refuses only records whose *stored* digest no longer
+  matches their body; unsealed records are accepted with their digest
+  recomputed and captured in the manifest, so later alteration stays
+  detectable. The frozen-account fixture also gained its missing serde
+  `details` field (schema-valid but previously not deserializable).
+- **Scenarios, vectors, invariants** — end-to-end tests over the real
+  pipeline (ingest → seal → recorded generation → verify → wire-level
+  tamper detection), `test-vectors/evidence` as an executable
+  integrity corpus (a verified package plus flipped artifact digest,
+  flipped aggregate, and swapped entry), and a cross-cutting invariant
+  pinning byte-identical reproducibility and conjunctive verification.
+- **Fixtures, example, docs** — the placeholder evidence fixtures
+  (fake digests, mismatched artifact/manifest pair) replaced with real
+  generated packages; the runnable `generate-evidence` example; and
+  `evidence.md` covering the package model, the build pipeline, the two
+  verification depths, and the honest limits.
+
 ### Later phases
 
-Phases 6+ (evidence generation, reporting, privacy enforcement,
-Soroban/RPC adapters, the simulator bridge, the optional on-chain
-registry, and security/performance hardening) are planned; see
-`docs/architecture.md` for the map and this file will record each as it
-lands.
+Phases 7+ (reporting, privacy enforcement, Soroban/RPC adapters, the
+simulator bridge, the optional on-chain registry, and
+security/performance hardening) are planned; see `docs/architecture.md`
+for the map and this file will record each as it lands.
