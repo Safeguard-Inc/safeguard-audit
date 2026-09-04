@@ -1,33 +1,55 @@
 {
-  "report_id": "rep_1234567890abcdef1234567890abcdef",
+  "report_id": "rep_8949a36143113c5373711c15d8c23ea9",
   "kind": "compliance-activity",
-  "generated_at": 1700000700,
-  "generated_by": "aud_01010101010101010101010101010101",
+  "generated_at": 1700000500,
+  "generated_by": "aud_f4692fd72db48f8ec6b3e598ed975ad0",
   "schema_version": 1,
   "query": {
-    "time_range": { "start": 1700000000, "end": 1700000700 },
-    "network": "testnet",
+    "time_range": null,
+    "network": null,
     "tokens": [],
     "event_kinds": [],
+    "outcome": null,
     "account": null,
-    "classification_ceiling": "confidential"
+    "classification_ceiling": null
   },
   "versions": {
     "report_schema": 1,
     "parser_version": "1.0.0",
-    "generator_version": "0.1.0"
+    "generator_version": "0.5.0"
   },
   "record_refs": [
-    { "network": "testnet", "hash": "abababababababababababababababababababababababababababababababab" }
+    {
+      "network": "testnet",
+      "hash": "abababababababababababababababababababababababababababababababab"
+    },
+    {
+      "network": "testnet",
+      "hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+    },
+    {
+      "network": "testnet",
+      "hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
+    }
   ],
   "summary": {
-    "total_records": 1,
-    "by_outcome": { "denied": 1 },
-    "by_kind": { "transfer-denied": 1 },
-    "by_reason": { "POLICY_DENIED": 1 }
+    "total_records": 3,
+    "by_outcome": {
+      "allowed": 1,
+      "denied": 1
+    },
+    "by_kind": {
+      "transfer-authorized": 1,
+      "transfer-denied": 1,
+      "account-frozen": 1
+    },
+    "by_reason": {
+      "OK": 1,
+      "POLICY_DENIED": 1
+    }
   },
   "digest": {
     "algorithm": "sha-256",
-    "value": "9999999999999999999999999999999999999999999999999999999999999999"
+    "value": "f554374b1a8f5ffab07cf55d63ccece38520ba26ad78bcc43b371b041639641d"
   }
 }
