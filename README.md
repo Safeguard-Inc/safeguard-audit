@@ -96,6 +96,8 @@ crates/
   investigation/     Case store + lifecycle service; findings, notes, closure
   evidence/          Evidence packages: sealed artifacts + integrity manifests,
                      structure- and store-backed verification
+  reporting/         Reproducible reports: query mapping, count-only summaries,
+                     public-reference rows, content digests
 schemas/             17 JSON Schemas for the wire contracts (checked in CI)
 fixtures/            Synthetic schema-valid instances for every contract
 interfaces/          Planned: cross-repo protocol references (events to/from hooks)
@@ -108,7 +110,7 @@ docs/                Architecture, model, and operations documentation
 consolidation is recorded in `docs/architecture.md` — the same
 interfaces-as-cross-repo-protocol discipline the sibling repos follow.
 
-## Status: Phases 1-5 complete
+## Status: Phases 1-6 complete
 
 Implemented, tested, and pushed to `main`:
 
@@ -148,8 +150,16 @@ Implemented, tested, and pushed to `main`:
   as an `evidence-generated` event. End-to-end pipeline scenarios,
   evidence-integrity vector corpus, real generated fixtures, the
   `generate-evidence` example.
+- **Phase 6 — Reporting.** `reporting` crate: deterministic
+  `ReportQuery` → `AuditQuery` mapping (with inverted-range rejection),
+  the `ReportService` (authorize → validate → scan → filter → seal),
+  count-only summaries and public transaction-reference rows, a
+  deterministic report id and content digest, and every generation
+  recorded as a `report-generated` event. End-to-end pipeline
+  scenarios, query-mapping vector corpus, real generated fixtures, the
+  `generate-report` example.
 
-Phases 6+ are defined in `docs/architecture.md`.
+Phases 7+ are defined in `docs/architecture.md`.
 
 ## Development
 
