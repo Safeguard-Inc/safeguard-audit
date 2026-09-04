@@ -52,9 +52,11 @@
 //!   policy.
 
 pub mod errors;
+pub mod events;
 pub mod store;
 
 pub use errors::{InvestigationError, InvestigationResult};
+pub use events::{record_step, LifecycleStep};
 pub use store::{CaseStore, InMemoryCaseStore};
 
 /// The crate's stable source label for lifecycle events it derives.
