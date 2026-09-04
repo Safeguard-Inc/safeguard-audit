@@ -1,0 +1,23 @@
+[package]
+name = "safeguard-audit-reporting"
+description = "Reporting services for the Safeguard audit layer: deterministic, reproducible reports (compliance, denied/flagged/approved activity, incidents, investigations, evidence summaries) generated from the audit store with count-only summaries, public-reference rows, and content digests."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-authorization = { path = "../authorization" }
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-events = { path = "../audit-events" }
+safeguard-audit-integrity = { path = "../integrity" }
+safeguard-audit-storage = { path = "../storage" }
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+safeguard-audit-memory-store = { path = "../memory-store" }

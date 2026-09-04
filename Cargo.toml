@@ -12,6 +12,7 @@ members = [
     "crates/investigation",
     "crates/storage",
     "crates/memory-store",
+    "crates/reporting",
 ]
 
 [workspace.package]
