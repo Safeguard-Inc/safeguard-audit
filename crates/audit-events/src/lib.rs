@@ -38,5 +38,6 @@ pub mod sanctions;
 pub mod transaction;
 pub mod transfer;
 
+pub use authorization::{access_recorded_event, AuthorizationChange, ChangeKind};
 pub use errors::{EventError, EventResult};
 pub use event_id::{derive_event_id, derived_event_id, onchain_event_id, EventSlot};
