@@ -26,9 +26,13 @@
 //! by an authorized process from authoritative transaction metadata. The
 //! audit trail records the distinction instead of blurring it.
 
+pub mod compliance;
 pub mod errors;
 pub mod event_id;
+pub mod freeze;
+pub mod sanctions;
 pub mod transaction;
+pub mod transfer;
 
-pub use errors::EventError;
-pub use event_id::derive_event_id;
+pub use errors::{EventError, EventResult};
+pub use event_id::{derive_event_id, derived_event_id, onchain_event_id, EventSlot};

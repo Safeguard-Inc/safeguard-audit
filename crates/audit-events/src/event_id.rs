@@ -18,7 +18,13 @@
 //! identity from anything arrival-time-like is rejected by construction —
 //! there is no clock anywhere in this module.
 
-use safeguard_audit_core::{EventId, EventKind};
+use safeguard_audit_core::{
+    AuditEvent, DerivationInfo, EventId, EventKind, EventOrder, EventProvenance, NetworkId,
+    OriginKind, VersionLabel,
+};
+
+use crate::transaction::TransactionContext;
+use crate::EventError;
 
 /// Derives the deterministic event id for a source event.
 ///
@@ -75,6 +81,117 @@ pub fn derived_event_id(network: &str, method: &str, source_refs: &[&str]) -> Ev
     parts.extend(source_refs.iter().map(|s| (*s).to_owned()));
     let refs: Vec<&str> = parts.iter().map(String::as_str).collect();
     derive_event_id(&refs)
+}
+
+// ---------------------------------------------------------------------------
+// Base envelope builders shared by the semantic event modules. These stamp
+// provenance and deterministic identity once, so every observed/derived
+// event type projects consistently.
+// ---------------------------------------------------------------------------
+
+/// Position of an event within its transaction, when the source reports it.
+/// Both components feed both the deterministic identity and the ordering
+/// metadata, so two events of the same kind in one transaction cannot
+/// collide.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct EventSlot {
+    /// Zero-based operation index, when known.
+    pub operation: Option<u32>,
+    /// Zero-based event index within the operation, when known.
+    pub event: Option<u32>,
+}
+
+/// Builds the base envelope for an *observed* on-chain event inside `tx`.
+///
+/// The transaction is required: an observed on-chain event always has one,
+/// and its hash is part of the deterministic identity. The caller fills in
+/// token/account/reference fields afterwards.
+pub(crate) fn observed_audit_event_base(
+    kind: EventKind,
+    network: NetworkId,
+    source: &str,
+    parser: VersionLabel,
+    tx: &TransactionContext,
+    slot: EventSlot,
+) -> Result<AuditEvent, EventError> {
+    let tx_ref = tx.to_reference()?;
+    let event_id = onchain_event_id(
+        network.as_str(),
+        Some(tx.hash.as_str()),
+        slot.operation,
+        slot.event,
+        kind,
+    )?;
+    let ledger = tx.ledger_reference()?;
+    let provenance = EventProvenance::new(OriginKind::OnChain, source, parser).map_err(|e| {
+        EventError::InvalidFieldValue {
+            field: "provenance".into(),
+            detail: e.to_string(),
+        }
+    })?;
+    let mut event = AuditEvent::new(event_id, kind, network, provenance);
+    event.transaction = Some(tx_ref);
+    event.ledger = ledger;
+    event.observed_at = tx.close_time;
+    event.order = EventOrder {
+        ledger_sequence: tx.ledger_sequence,
+        transaction_position: None,
+        operation_index: slot.operation,
+        event_index: slot.event,
+    };
+    Ok(event)
+}
+
+/// Everything that defines a *derived* event's provenance.
+pub(crate) struct DerivationSource<'a> {
+    /// Derivation method label (stable, e.g. `failed-tx-analysis`).
+    pub method: &'a str,
+    /// Human explanation of the derivation.
+    pub note: &'a str,
+    /// Stable source references the event was derived from (identity).
+    pub source_refs: &'a [&'a str],
+    /// The transaction the derived activity belongs to, when known.
+    pub tx: Option<&'a TransactionContext>,
+    /// Observed events this derivation consumed, when any.
+    pub source_events: Vec<EventId>,
+}
+
+/// Builds the base envelope for a *derived* event reconstructed from
+/// authoritative metadata (denied transfer, sanctions flag, config change
+/// observed off-chain, ...).
+pub(crate) fn derived_audit_event_base(
+    kind: EventKind,
+    network: NetworkId,
+    source: &str,
+    parser: VersionLabel,
+    derivation: DerivationSource<'_>,
+    slot: EventSlot,
+) -> Result<AuditEvent, EventError> {
+    let event_id = derived_event_id(network.as_str(), derivation.method, derivation.source_refs);
+    let info = DerivationInfo::new(derivation.method, derivation.source_events, derivation.note)
+        .map_err(|e| EventError::InvalidFieldValue {
+            field: "derivation".into(),
+            detail: e.to_string(),
+        })?;
+    let provenance = EventProvenance::new(OriginKind::Derived, source, parser)
+        .map_err(|e| EventError::InvalidFieldValue {
+            field: "provenance".into(),
+            detail: e.to_string(),
+        })?
+        .with_derivation(info);
+    let mut event = AuditEvent::new(event_id, kind, network, provenance);
+    if let Some(tx) = derivation.tx {
+        event.transaction = Some(tx.to_reference()?);
+        event.ledger = tx.ledger_reference()?;
+        event.observed_at = tx.close_time;
+        event.order = EventOrder {
+            ledger_sequence: tx.ledger_sequence,
+            transaction_position: None,
+            operation_index: slot.operation,
+            event_index: slot.event,
+        };
+    }
+    Ok(event)
 }
 
 #[cfg(test)]
