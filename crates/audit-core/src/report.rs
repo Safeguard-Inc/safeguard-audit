@@ -255,6 +255,20 @@ impl Report {
     pub fn summary(&self) -> &ReportSummary {
         &self.summary
     }
+
+    /// Canonical bytes for the report's *content* — the deterministic
+    /// input to its content digest.
+    ///
+    /// The digest slot is excluded by construction: the digest is attached
+    /// *after* the content is hashed, so it can never be part of the
+    /// content it certifies. The generator hashes these bytes and a
+    /// verifier recomputes them from the stored report, so both paths
+    /// agree without field-stripping hacks.
+    pub fn canonical_bytes(&self) -> AuditResult<Vec<u8>> {
+        let mut content = self.clone();
+        content.digest = None;
+        crate::serialization::canonical_json(&content)
+    }
 }
 
 /// A report request: what an authorized caller asked for.
@@ -389,5 +403,30 @@ mod tests {
         );
         assert!(report.validate().is_err());
         let _ = NetworkId::new(NetworkId::MAINNET);
+    }
+
+    #[test]
+    fn canonical_bytes_exclude_the_digest_slot() {
+        let report = Report::new(
+            ReportId::derive(&["r"]),
+            ReportKind::ComplianceActivity,
+            Timestamp::from_unix_seconds(100),
+            ReportQuery::all(),
+            GeneratorVersions {
+                report_schema: REPORT_SCHEMA_VERSION,
+                parser_version: VersionLabel::new("1").unwrap(),
+                generator_version: VersionLabel::new("1").unwrap(),
+            },
+        );
+        let digest = IntegrityDigest::sha256("aa".repeat(32)).unwrap();
+        let sealed = report.clone().with_digest(digest);
+        // Sealing never changes the canonical content: the digest is
+        // attached after content hashing, not part of it.
+        assert_eq!(report.canonical_bytes().unwrap(), sealed.canonical_bytes().unwrap());
+        // And content bytes are deterministic.
+        assert_eq!(
+            report.canonical_bytes().unwrap(),
+            report.canonical_bytes().unwrap()
+        );
     }
 }

@@ -17,7 +17,9 @@
     "parser_version": "1.0.0",
     "generator_version": "0.1.0"
   },
-  "record_refs": ["abababababababababababababababababababababababababababababababab"],
+  "record_refs": [
+    { "network": "testnet", "hash": "abababababababababababababababababababababababababababababababab" }
+  ],
   "summary": {
     "total_records": 1,
     "by_outcome": { "denied": 1 },

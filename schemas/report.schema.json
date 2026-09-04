@@ -39,7 +39,15 @@
     "record_refs": {
       "type": "array",
       "description": "Public transaction references in the report body.",
-      "items": { "type": "string" }
+      "items": {
+        "type": "object",
+        "required": ["network", "hash"],
+        "properties": {
+          "network": { "type": "string" },
+          "hash": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
     },
     "summary": {
       "type": "object",
