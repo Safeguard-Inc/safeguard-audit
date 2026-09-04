@@ -164,7 +164,7 @@ The ingestion, normalization, indexing, and tamper-evidence layer:
   demos; `event-ingestion`, `event-normalization`, `indexing`, and
   `evidence-integrity` docs.
 
-### Phase 5 — Evidence services (complete)
+### Phase 6 — Evidence services (complete)
 
 Turning verified audit records into exportable, independently checkable
 evidence packages:
@@ -202,7 +202,7 @@ evidence packages:
   `evidence.md` covering the package model, the build pipeline, the two
   verification depths, and the honest limits.
 
-### Phase 6 — Reporting services (complete)
+### Phase 7 — Reporting services (complete)
 
 Reproducible, bounded summaries of audit history:
 
@@ -240,9 +240,47 @@ Reproducible, bounded summaries of audit history:
   `reporting.md` covering the report model, the generation pipeline,
   the reproducibility guarantee, and the boundaries.
 
+### Phase 8 — Privacy enforcement (complete)
+
+Privacy is enforced at the boundary where protected values would
+otherwise reach a reader:
+
+- **The privacy enforcement crate** (`crates/privacy`) — deterministic,
+  marker-based redaction of detail values whose classification is at or
+  above the disclosure ceiling (replaced wholesale, never truncated or
+  revealed), field tables that inherit the record's own classification
+  when a key is undeclared so an empty table still protects, a
+  serializable `RecordDisclosure` projection with a machine-readable
+  withheld-keys proof list, and disclosure ceilings derived from
+  granted scopes that disclose *exactly* what the authorizer covers
+  (one level above the most sensitive classification grant; `None` when
+  an `All`/`HighlyRestricted` grant covers everything). The privacy
+  crate and the authorizer are pinned to each other by integration
+  tests over the real `covers_classification` for every grant/field
+  combination.
+- **Declared field policies on real records** — `audit-events` now
+  declares the sensitivity of every detail key its derived events write
+  (public event-kind labels and digests, operational correlation
+  references and counts, confidential investigation summaries; never
+  restricted or higher), and the report/evidence/investigation record
+  paths populate each record's `redactions` table from that declaration
+  before inserting it — so operational attribution facts disclose
+  instead of over-redacting, and anything undeclared stays protected.
+- **The `DecryptionProvider` boundary** (`audit-core::decryption`) — the
+  narrow door for legitimate view-key access: request/response types,
+  a provider-neutral trait whose contract is authorize-before-decrypt
+  and return-minimum-information, and a taxonomy mapping onto the core
+  error surface. No cryptography is invented and no provider is
+  implemented; that waits for the verified upstream Confidential Token
+  architecture.
+- **Tests, docs** — unit suites across the privacy crate, audit-events,
+  and the report/evidence/investigation recorders; integration tests
+  driving disclosure through the real service stack and store;
+  `docs/privacy.md` and `docs/data-classification.md`.
+
 ### Later phases
 
-Phases 8+ (privacy enforcement, Soroban/RPC adapters, the simulator
-bridge, the optional on-chain registry, and security/performance
-hardening) are planned; see `docs/architecture.md` for the map and this
-file will record each as it lands.
+Phases 9+ (Soroban/RPC adapters, the simulator bridge, the optional
+on-chain registry, and security/performance hardening) are planned; see
+`docs/architecture.md` for the map and this file will record each as it
+lands.

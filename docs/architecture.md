@@ -88,6 +88,7 @@ repos. Where a spec module landed elsewhere, this table says where:
 | investigation modules (`store`, `service`, `events`, `errors`) | `crates/investigation/src/` (the core *models* stay in `audit-core::investigation`; lifecycle *events* stay in `audit-events::investigation`) |
 | evidence modules (`builder`, `verify`, `model`, `events`, `errors`) | `crates/evidence/src/` (the core *models* stay in `audit-core::evidence`; generation *events* stay in `audit-events::evidence`; hashing primitives stay in `integrity`) |
 | reporting modules (`service`, `query`, `events`, `errors`) | `crates/reporting/src/` (the core *models* stay in `audit-core::report`; generation *events* stay in `audit-events::report`) |
+| privacy spec modules (redaction, classification, disclosure, protected fields) and decryption modules | `crates/privacy/src/` (`redaction`, `disclosure`, `ceiling`); the vocabulary stays in `audit-core::privacy`; the decryption boundary in `audit-core::decryption`; declared detail-key policies in `audit-events::classify` |
 | `test-vectors/normalization`, `test-vectors/authorization`, `test-vectors/evidence`, `test-vectors/reporting` | top-level corpora consumed at runtime by the normalizer/authorizer/evidence/reporting integration tests |
 | integration tests (`tests/integration/end_to_end` etc.) | `crates/integration-tests/tests/` |
 | `tests/`, `benches/`, `examples/`, `cli/`, `contracts/audit-registry`, later crates | land in later phases with their subsystems |
@@ -112,6 +113,7 @@ Phases:
    *Complete (see `reporting.md`).*
 8. **Privacy** — redaction, classification enforcement, disclosure
    controls, the `DecryptionProvider` boundary.
+   *Complete (see `privacy.md`, `data-classification.md`).*
 9. **Stellar/Soroban** — the Soroban event adapter, RPC abstraction.
 10. **Simulator** — the crucible-simulator bridge for deterministic tests.
 11. **On-chain registry** — the minimal optional `audit-registry` contract
