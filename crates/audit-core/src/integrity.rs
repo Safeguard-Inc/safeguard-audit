@@ -337,6 +337,21 @@ impl IntegrityManifest {
         &self.manifest_id
     }
 
+    /// The first ledger covered, when the range is ledger-bounded.
+    pub fn from_ledger(&self) -> Option<i64> {
+        self.from_ledger
+    }
+
+    /// The last ledger covered, when the range is ledger-bounded.
+    pub fn to_ledger(&self) -> Option<i64> {
+        self.to_ledger
+    }
+
+    /// The declared number of covered records (equals `entries().len()`).
+    pub fn record_count(&self) -> u64 {
+        self.record_count
+    }
+
     /// The manifest schema version.
     pub fn schema_version(&self) -> u32 {
         self.schema_version
