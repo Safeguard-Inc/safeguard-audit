@@ -103,6 +103,11 @@ pub enum AuditError {
     #[error("serialization failure: {0}")]
     SerializationFailure(String),
 
+    /// A query was structurally invalid (contradictory filters, unknown
+    /// fields, impossible ranges).
+    #[error("invalid query: {0}")]
+    InvalidQuery(String),
+
     /// A value failed validation that is not covered by a more specific
     /// variant (used by builders for compound invariants).
     #[error("validation failure: {0}")]

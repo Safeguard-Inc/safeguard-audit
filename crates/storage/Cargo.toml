@@ -1,0 +1,17 @@
+[package]
+name = "safeguard-audit-storage"
+description = "EventStore interface for the Safeguard audit layer: the append-only store contract, query model, write batches, and pagination the domain consumes."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

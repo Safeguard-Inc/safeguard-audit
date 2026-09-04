@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/audit-core",
     "crates/audit-events",
+    "crates/storage",
 ]
 
 [workspace.package]

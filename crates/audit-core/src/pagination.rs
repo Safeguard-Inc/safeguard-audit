@@ -29,7 +29,7 @@ impl Cursor {
         let valid = (1..=128).contains(&value.len())
             && value.chars().all(|c| {
                 c.is_ascii_alphanumeric()
-                    || matches!(c, '_' | '-' | '.' | '~' | ':' | '/' | '+' | '=')
+                    || matches!(c, '_' | '-' | '.' | '~' | ':' | '/' | '+' | '=' | '|')
             });
         if valid {
             Ok(Self(value.to_owned()))
