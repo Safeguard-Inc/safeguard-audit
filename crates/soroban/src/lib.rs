@@ -27,9 +27,10 @@
 //!   topic belongs to the contract that emitted it. That meaning is
 //!   verified against the actual hooks/contract surface before anything
 //!   is mapped, never invented in this crate.
-//! * **No RPC client.** Fetching lives behind the `EventSource` door
-//!   (in `audit-core`); this crate supplies the envelope and, later,
-//!   the translation. It depends on no network stack and no node.
+//! * **No RPC client.** [`source`] implements the audit-core
+//!   [`EventSource`] door over a narrow [`SorobanEventFeed`] trait — the
+//!   fetch operation an RPC client supplies outside this crate. This
+//!   crate depends on no network stack and no node.
 //! * **No audit semantics.** A generic Soroban event does not become an
 //!   `AuditEvent` by magic: mapping requires an operator-provided
 //!   contract registry and the verified payload schemas of the events
@@ -38,6 +39,8 @@
 //! Anything below is synthetic test data — this repository never
 //! hard-codes credentials or real network endpoints.
 
+pub mod source;
 pub mod wire;
 
+pub use source::{SorobanEventFeed, SorobanEventSource};
 pub use wire::{SorobanEvent, SorobanEventType, SorobanEventsResult};

@@ -244,6 +244,7 @@ dependencies = [
 name = "safeguard-audit-soroban"
 version = "0.1.0"
 dependencies = [
+ "safeguard-audit-core",
  "serde",
  "serde_json",
 ]
