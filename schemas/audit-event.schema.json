@@ -129,11 +129,21 @@
       },
       "additionalProperties": false
     },
+    "policy_reference": {
+      "type": "object",
+      "required": ["policy", "version"],
+      "properties": {
+        "policy": { "type": "string", "maxLength": 128, "description": "The policy contract/address." },
+        "version": { "type": "string", "maxLength": 32 },
+        "digest": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$", "description": "Optional digest of the policy body at that version." }
+      },
+      "additionalProperties": false
+    },
     "policy_decision_reference": {
       "type": "object",
       "required": ["policy", "result"],
       "properties": {
-        "policy": { "type": "object" },
+        "policy": { "$ref": "#/$defs/policy_reference" },
         "result": { "type": "string", "enum": ["allowed", "denied", "flagged"] },
         "reason": { "type": ["string", "null"] },
         "decided_at": { "type": ["integer", "null"] }

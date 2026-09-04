@@ -35,7 +35,9 @@
 //! [`EventSource`]: safeguard_audit_core::EventSource
 
 pub mod errors;
+pub mod parser;
 pub mod scheme;
 
 pub use errors::{NormalizerError, NormalizerResult};
+pub use parser::{parse, HooksType, ParsedEvent, RawEnvelope, RawHooksEvent};
 pub use scheme::Scheme;

@@ -22,7 +22,10 @@
     "actor": { "network": "testnet", "account": "GASENDERACCOUNTDEMO0000000000000000000000000000000000" },
     "subject": { "network": "testnet", "account": "GCRECEIVERACCOUNTDEMO00000000000000000000000000000000" },
     "decision": {
-      "policy": { "network": "testnet", "contract": "CPOLICYCONTRACTDEMO0000000000000000000000000000000000" },
+      "policy": {
+        "policy": "CPOLICYCONTRACTDEMO0000000000000000000000000000000000",
+        "version": "1.0.0"
+      },
       "result": "denied",
       "reason": "POLICY_DENIED",
       "decided_at": 1700000199
@@ -34,7 +37,8 @@
       "reason": "POLICY_DENIED"
     },
     "outcome": "denied",
-    "reason": "POLICY_DENIED"
+    "reason": "POLICY_DENIED",
+    "details": {}
   },
   "recorded_at": 1700000201,
   "schema_version": 1,
