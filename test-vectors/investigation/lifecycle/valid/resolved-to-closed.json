@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "A resolved case closes after review.",
+  "from": "resolved",
+  "to": "closed",
+  "allowed": true
+}

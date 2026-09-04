@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "A closed case cannot escalate without being reopened.",
+  "from": "closed",
+  "to": "escalated",
+  "allowed": false
+}

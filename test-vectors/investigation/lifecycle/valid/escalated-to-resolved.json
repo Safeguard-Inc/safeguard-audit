@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "An escalated case is resolved after compliance review.",
+  "from": "escalated",
+  "to": "resolved",
+  "allowed": true
+}

@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "Escalation review sends the case back to active investigation.",
+  "from": "escalated",
+  "to": "investigating",
+  "allowed": true
+}

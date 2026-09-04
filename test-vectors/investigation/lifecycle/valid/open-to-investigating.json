@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "A newly opened case moves to actively investigating.",
+  "from": "open",
+  "to": "investigating",
+  "allowed": true
+}

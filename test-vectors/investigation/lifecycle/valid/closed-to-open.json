@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "An administrator may reopen a closed case.",
+  "from": "closed",
+  "to": "open",
+  "allowed": true
+}

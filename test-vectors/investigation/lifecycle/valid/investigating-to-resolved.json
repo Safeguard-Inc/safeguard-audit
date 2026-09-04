@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "Active investigation completes and the case is resolved.",
+  "from": "investigating",
+  "to": "resolved",
+  "allowed": true
+}

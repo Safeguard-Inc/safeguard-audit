@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "A case reopened after review returns to open.",
+  "from": "resolved",
+  "to": "open",
+  "allowed": true
+}

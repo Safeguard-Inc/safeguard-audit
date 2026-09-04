@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "Resolution requires active investigation first.",
+  "from": "open",
+  "to": "resolved",
+  "allowed": false
+}

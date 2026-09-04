@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "A closed case may only reopen through open; direct resumption is refused.",
+  "from": "closed",
+  "to": "investigating",
+  "allowed": false
+}

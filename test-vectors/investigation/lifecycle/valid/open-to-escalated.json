@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "A case flagged for urgent review can escalate directly from open.",
+  "from": "open",
+  "to": "escalated",
+  "allowed": true
+}

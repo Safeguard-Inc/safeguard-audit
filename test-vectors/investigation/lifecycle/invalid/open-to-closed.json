@@ -1,0 +1,7 @@
+{
+  "scheme": "investigation-lifecycle",
+  "note": "A case cannot skip the whole lifecycle and close from open.",
+  "from": "open",
+  "to": "closed",
+  "allowed": false
+}
