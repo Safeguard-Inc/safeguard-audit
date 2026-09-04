@@ -1,0 +1,14 @@
+{
+  "scheme": "authorization-decision",
+  "note": "A compliance officer cleared for confidential data requests restricted data: the classification grant is directional, so the protected-data read is out of scope.",
+  "role": "compliance-officer",
+  "granted_scopes": ["classification:confidential"],
+  "credential_expires_at": 9999999999,
+  "action": "request-protected-data",
+  "requested_scope": "classification:restricted",
+  "now": 1700000000,
+  "expect": {
+    "allowed": false,
+    "reason": "SCOPE_OUT_OF_BOUNDS"
+  }
+}

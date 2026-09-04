@@ -1,0 +1,15 @@
+{
+  "scheme": "authorization-decision",
+  "note": "A caller with no registered grant is denied cleanly with a reason code, never an error or panic.",
+  "role": "auditor",
+  "granted_scopes": [],
+  "credential_expires_at": 9999999999,
+  "action": "read-record",
+  "requested_scope": "network:testnet",
+  "now": 1700000000,
+  "expect": {
+    "allowed": false,
+    "reason": "UNKNOWN_AUDITOR"
+  },
+  "unknown_auditor": true
+}

@@ -1,0 +1,14 @@
+{
+  "scheme": "authorization-decision",
+  "note": "A senior auditor with a valid credential on testnet reads a record within the granted network scope: allowed.",
+  "role": "senior-auditor",
+  "granted_scopes": ["network:testnet"],
+  "credential_expires_at": 9999999999,
+  "action": "read-record",
+  "requested_scope": "network:testnet",
+  "now": 1700000000,
+  "expect": {
+    "allowed": true,
+    "reason": "GRANTED"
+  }
+}

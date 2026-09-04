@@ -1,0 +1,14 @@
+{
+  "scheme": "authorization-decision",
+  "note": "An auditor granted only testnet requests mainnet data: the action is allowed by role but no granted scope contains the request, so the decision is out-of-scope.",
+  "role": "auditor",
+  "granted_scopes": ["network:testnet"],
+  "credential_expires_at": 9999999999,
+  "action": "read-record",
+  "requested_scope": "network:mainnet",
+  "now": 1700000000,
+  "expect": {
+    "allowed": false,
+    "reason": "SCOPE_OUT_OF_BOUNDS"
+  }
+}

@@ -18,4 +18,5 @@ safeguard-audit-indexer = { path = "../event-indexer" }
 safeguard-audit-memory-store = { path = "../memory-store" }
 safeguard-audit-normalizer = { path = "../event-normalizer" }
 safeguard-audit-storage = { path = "../storage" }
+serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

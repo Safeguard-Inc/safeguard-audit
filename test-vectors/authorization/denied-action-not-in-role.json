@@ -1,0 +1,14 @@
+{
+  "scheme": "authorization-decision",
+  "note": "A read-only reviewer attempts to generate a report: the role does not grant the action, so the decision is denied even inside scope.",
+  "role": "read-only-reviewer",
+  "granted_scopes": ["network:testnet"],
+  "credential_expires_at": 9999999999,
+  "action": "generate-report",
+  "requested_scope": "network:testnet",
+  "now": 1700000000,
+  "expect": {
+    "allowed": false,
+    "reason": "ACTION_DENIED"
+  }
+}
