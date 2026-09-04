@@ -58,6 +58,7 @@
 //! has not expired as valid and says so plainly.
 
 pub mod errors;
+pub mod roles;
 
 pub use errors::{AuthorizationError, AuthorizationResult};
 
