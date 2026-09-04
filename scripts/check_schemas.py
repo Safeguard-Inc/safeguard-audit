@@ -89,6 +89,8 @@ INSTANCES = {
     ],
     "investigation.schema.json": [
         "fixtures/investigations/open/case.json",
+        "fixtures/investigations/closed/case.json",
+        "fixtures/investigations/escalated/case.json",
     ],
     "cursor.schema.json": [
         "fixtures/cursors/page.json",

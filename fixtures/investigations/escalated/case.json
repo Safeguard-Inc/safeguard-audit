@@ -1,0 +1,41 @@
+{
+  "case_id": "case_feedfacefeedfacefeedfacefeedface",
+  "title": "escalated sanctions review",
+  "status": "escalated",
+  "priority": "critical",
+  "created_at": 1700001000,
+  "created_by": "aud_01010101010101010101010101010101",
+  "assigned_to": "aud_02020202020202020202020202020202",
+  "related": {
+    "records": ["rec_cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"]
+  },
+  "timeline": [
+    {
+      "at": 1700001000,
+      "kind": "denial",
+      "actor": null,
+      "record": "rec_cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+      "provenance": "audit-record",
+      "detail": "transfer denied on sanctions match"
+    },
+    {
+      "at": 1700001050,
+      "kind": "status-changed",
+      "actor": "aud_02020202020202020202020202020202",
+      "record": null,
+      "provenance": "auditor-action",
+      "detail": "open -> escalated (possible sanctions match)"
+    }
+  ],
+  "findings": [],
+  "notes": [
+    {
+      "note_id": "note_feedfacefeedfacefeedfacefeedface",
+      "author": "aud_02020202020202020202020202020202",
+      "body": "Awaiting the sanctions list refresh before determining next steps.",
+      "created_at": 1700001100
+    }
+  ],
+  "closed_at": null,
+  "closed_reason": null
+}

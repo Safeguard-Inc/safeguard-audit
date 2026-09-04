@@ -1,0 +1,60 @@
+{
+  "case_id": "case_abcdefabcdefabcdefabcdefabcdefab",
+  "title": "closed freeze investigation",
+  "status": "closed",
+  "priority": "high",
+  "created_at": 1700000600,
+  "created_by": "aud_01010101010101010101010101010101",
+  "assigned_to": "aud_02020202020202020202020202020202",
+  "related": {
+    "records": ["rec_abababababababababababababababab"]
+  },
+  "timeline": [
+    {
+      "at": 1700000600,
+      "kind": "account-frozen",
+      "actor": null,
+      "record": "rec_abababababababababababababababab",
+      "provenance": "audit-record",
+      "detail": "account frozen by policy"
+    },
+    {
+      "at": 1700000700,
+      "kind": "status-changed",
+      "actor": "aud_02020202020202020202020202020202",
+      "record": null,
+      "provenance": "auditor-action",
+      "detail": "open -> investigating"
+    },
+    {
+      "at": 1700000800,
+      "kind": "status-changed",
+      "actor": "aud_02020202020202020202020202020202",
+      "record": null,
+      "provenance": "auditor-action",
+      "detail": "investigating -> resolved"
+    },
+    {
+      "at": 1700000900,
+      "kind": "status-changed",
+      "actor": "aud_03030303030303030303030303030303",
+      "record": null,
+      "provenance": "auditor-action",
+      "detail": "resolved -> closed (freeze was correct)"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "find_abcdefabcdefabcdefabcdefabcdefab",
+      "kind": "enforcement-verdict",
+      "severity": "low",
+      "summary": "freeze applied correctly; no remediation needed",
+      "related_records": ["rec_abababababababababababababababab"],
+      "created_at": 1700000850,
+      "created_by": "aud_02020202020202020202020202020202"
+    }
+  ],
+  "notes": [],
+  "closed_at": 1700000900,
+  "closed_reason": "freeze was correct; no remediation needed"
+}
