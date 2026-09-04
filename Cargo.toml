@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/audit-core",
     "crates/audit-events",
+    "crates/event-normalizer",
     "crates/storage",
     "crates/memory-store",
 ]
