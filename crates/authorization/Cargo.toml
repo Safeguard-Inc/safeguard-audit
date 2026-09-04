@@ -1,0 +1,21 @@
+[package]
+name = "safeguard-audit-authorization"
+description = "Authorization services for the Safeguard audit layer: the role-to-permission matrix, scope containment, auditor credentials, and the authorizer that turns identity + action + scope into an attributed decision. Every protected-data access becomes a recorded audit-access event."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-events = { path = "../audit-events" }
+safeguard-audit-storage = { path = "../storage" }
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+safeguard-audit-memory-store = { path = "../memory-store" }

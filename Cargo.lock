@@ -93,6 +93,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "safeguard-audit-authorization"
+version = "0.1.0"
+dependencies = [
+ "safeguard-audit-core",
+ "safeguard-audit-events",
+ "safeguard-audit-memory-store",
+ "safeguard-audit-storage",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "safeguard-audit-core"
 version = "0.1.0"
 dependencies = [
