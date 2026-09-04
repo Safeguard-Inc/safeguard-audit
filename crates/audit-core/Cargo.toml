@@ -1,0 +1,17 @@
+[package]
+name = "safeguard-audit-core"
+description = "Provider-neutral domain model for the Safeguard audit layer: normalized events, audit records, integrity references, authorization, investigations, evidence, and reports."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
