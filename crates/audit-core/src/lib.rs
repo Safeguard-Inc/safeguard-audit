@@ -23,15 +23,18 @@
 //! `safeguard-policy`; policy *enforcement* belongs to `safeguard-hooks`;
 //! this repository *records and verifies what happened*.
 
+pub mod audit;
 pub mod correlation;
 pub mod errors;
 pub mod event;
 pub mod identifiers;
 pub mod pagination;
 pub mod privacy;
+pub mod record;
 pub mod serialization;
 pub mod timestamps;
 
+pub use audit::RECORD_SCHEMA_VERSION;
 pub use correlation::{
     AccountReference, ContractReference, DecisionResult, EnforcementResultReference,
     LedgerReference, OperationReference, PolicyDecisionReference, PolicyReference, TokenReference,
@@ -42,4 +45,5 @@ pub use event::{AuditEvent, DerivationInfo, EventKind, EventOrder, EventProvenan
 pub use identifiers::EventId;
 pub use pagination::{Cursor, Page, PageRequest};
 pub use privacy::DataClassification;
+pub use record::{AuditRecord, IntegrityDigest, RecordIntegrity};
 pub use timestamps::{Clock, FixedClock, SystemClock, TimeRange, Timestamp};
