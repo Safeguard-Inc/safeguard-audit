@@ -79,7 +79,9 @@ impl CaseStore for InMemoryCaseStore {
     fn create(&mut self, case: InvestigationCase) -> InvestigationResult<()> {
         let id = case.case_id().clone();
         if self.cases.contains_key(&id) {
-            return Err(InvestigationError::CaseAlreadyExists(id.as_str().to_owned()));
+            return Err(InvestigationError::CaseAlreadyExists(
+                id.as_str().to_owned(),
+            ));
         }
         self.cases.insert(id, case);
         Ok(())
@@ -197,15 +199,14 @@ mod tests {
         assert!(store.update(case("ghost", CaseStatus::Open)).is_err());
 
         let mut moved = c.clone();
-        moved.change_status(
-            CaseStatus::Investigating,
-            at(200),
-            auditor("a2"),
-            None,
-        )
-        .unwrap();
+        moved
+            .change_status(CaseStatus::Investigating, at(200), auditor("a2"), None)
+            .unwrap();
         store.update(moved.clone()).unwrap();
-        assert_eq!(store.get(c.case_id()).unwrap().status(), CaseStatus::Investigating);
+        assert_eq!(
+            store.get(c.case_id()).unwrap().status(),
+            CaseStatus::Investigating
+        );
     }
 
     #[test]
