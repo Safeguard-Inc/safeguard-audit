@@ -9,7 +9,7 @@
 //! the provenance).
 
 use safeguard_audit_core::{
-    AuditEvent, EvidenceId, EvidenceKind, EventKind, IntegrityDigest, ManifestId, NetworkId,
+    AuditEvent, EventKind, EvidenceId, EvidenceKind, IntegrityDigest, ManifestId, NetworkId,
     VersionLabel,
 };
 

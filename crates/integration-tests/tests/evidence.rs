@@ -170,11 +170,7 @@ fn evidence_over_pipeline_records_seals_verifies_and_detects_tampering() {
         Some("2")
     );
     assert_eq!(
-        generation
-            .event
-            .details
-            .get("evidence")
-            .map(String::as_str),
+        generation.event.details.get("evidence").map(String::as_str),
         Some(package.artifact().evidence_id().as_str())
     );
 
@@ -190,18 +186,15 @@ fn evidence_over_pipeline_records_seals_verifies_and_detects_tampering() {
     //    tampering is done at the wire level (JSON), as a corrupted export
     //    would present it.
     let mut value = serde_json::to_value(&package).unwrap();
-    value["artifact"]["digest"]["value"] =
-        serde_json::Value::String("ee".repeat(32));
-    let wrong: safeguard_audit_evidence::EvidencePackage =
-        serde_json::from_value(value).unwrap();
+    value["artifact"]["digest"]["value"] = serde_json::Value::String("ee".repeat(32));
+    let wrong: safeguard_audit_evidence::EvidencePackage = serde_json::from_value(value).unwrap();
     let structure = safeguard_audit_evidence::verify_package_structure(&wrong).unwrap();
     assert!(!structure.verified());
     assert!(!structure.artifact_verified());
 
     // 5. A tampered manifest entry is caught by store-backed verification.
     let mut value = serde_json::to_value(&package).unwrap();
-    value["manifest"]["entries"][1]["digest"]["value"] =
-        serde_json::Value::String("dd".repeat(32));
+    value["manifest"]["entries"][1]["digest"]["value"] = serde_json::Value::String("dd".repeat(32));
     let tampered: safeguard_audit_evidence::EvidencePackage =
         serde_json::from_value(value).unwrap();
     let full = safeguard_audit_evidence::verify_package(&tampered, &audit).unwrap();

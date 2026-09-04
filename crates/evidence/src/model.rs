@@ -61,13 +61,9 @@ impl EvidenceManifest {
         parser_version: VersionLabel,
         network: NetworkId,
     ) -> EvidenceResult<Self> {
-        manifest
-            .validate()
-            .map_err(EvidenceError::from_core)?;
+        manifest.validate().map_err(EvidenceError::from_core)?;
         let aggregate_digest = manifest.aggregate_digest().cloned().ok_or_else(|| {
-            EvidenceError::InvalidContent(
-                "evidence manifests require an aggregate digest".into(),
-            )
+            EvidenceError::InvalidContent("evidence manifests require an aggregate digest".into())
         })?;
         let built = Self {
             manifest_id: manifest.manifest_id().clone(),
@@ -83,9 +79,9 @@ impl EvidenceManifest {
             entries: manifest.entries().to_vec(),
             aggregate_digest,
         };
-        built
-            .validate()
-            .map_err(|e| EvidenceError::InvalidContent(format!("built manifest is invalid: {e}")))?;
+        built.validate().map_err(|e| {
+            EvidenceError::InvalidContent(format!("built manifest is invalid: {e}"))
+        })?;
         Ok(built)
     }
 
@@ -94,18 +90,22 @@ impl EvidenceManifest {
     /// coherent.
     pub fn validate(&self) -> AuditResult<()> {
         if self.schema_version != EVIDENCE_MANIFEST_SCHEMA_VERSION {
-            return Err(safeguard_audit_core::AuditError::UnsupportedSchema(format!(
-                "evidence manifest schema version {} is not supported (expected \
+            return Err(safeguard_audit_core::AuditError::UnsupportedSchema(
+                format!(
+                    "evidence manifest schema version {} is not supported (expected \
                  {EVIDENCE_MANIFEST_SCHEMA_VERSION})",
-                self.schema_version
-            )));
+                    self.schema_version
+                ),
+            ));
         }
         if self.record_count as usize != self.entries.len() {
-            return Err(safeguard_audit_core::AuditError::ValidationFailure(format!(
-                "evidence manifest declares {} records but carries {}",
-                self.record_count,
-                self.entries.len()
-            )));
+            return Err(safeguard_audit_core::AuditError::ValidationFailure(
+                format!(
+                    "evidence manifest declares {} records but carries {}",
+                    self.record_count,
+                    self.entries.len()
+                ),
+            ));
         }
         if let (Some(from), Some(to)) = (self.from_ledger, self.to_ledger) {
             if from > to {
@@ -208,12 +208,8 @@ impl EvidencePackage {
                 )));
             }
         }
-        artifact
-            .validate()
-            .map_err(EvidenceError::from_core)?;
-        manifest
-            .validate()
-            .map_err(EvidenceError::from_core)?;
+        artifact.validate().map_err(EvidenceError::from_core)?;
+        manifest.validate().map_err(EvidenceError::from_core)?;
         Ok(Self { artifact, manifest })
     }
 
@@ -231,9 +227,7 @@ impl EvidencePackage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use safeguard_audit_core::{
-        AuditorId, EvidenceKind, EvidenceProvenance, RecordId,
-    };
+    use safeguard_audit_core::{AuditorId, EvidenceKind, EvidenceProvenance, RecordId};
 
     fn integrity_manifest() -> IntegrityManifest {
         let digest = IntegrityDigest::sha256("ab".repeat(32)).unwrap();
@@ -283,7 +277,10 @@ mod tests {
         assert_eq!(manifest.from_ledger(), Some(10));
         assert_eq!(manifest.to_ledger(), Some(20));
         assert_eq!(manifest.network().as_str(), "testnet");
-        assert_eq!(manifest.artifact().as_str(), EvidenceId::derive(&["e1"]).as_str());
+        assert_eq!(
+            manifest.artifact().as_str(),
+            EvidenceId::derive(&["e1"]).as_str()
+        );
         assert!(manifest.validate().is_ok());
     }
 
@@ -358,6 +355,9 @@ impl EvidenceManifest {
         original: EvidenceManifest,
         entries: Vec<ManifestEntry>,
     ) -> Self {
-        Self { entries, ..original }
+        Self {
+            entries,
+            ..original
+        }
     }
 }

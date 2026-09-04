@@ -216,6 +216,12 @@ impl EvidenceArtifact {
     pub fn digest(&self) -> Option<&IntegrityDigest> {
         self.digest.as_ref()
     }
+
+    /// The integrity manifest covering this artifact's source records,
+    /// when one was generated with it.
+    pub fn manifest_id(&self) -> Option<&ManifestId> {
+        self.manifest_id.as_ref()
+    }
 }
 
 #[cfg(test)]
@@ -330,7 +336,10 @@ mod tests {
             .with_manifest(manifest.clone());
         // Sealing never changes the canonical content: the digest and
         // manifest are attached after content hashing, not part of it.
-        assert_eq!(artifact.canonical_bytes().unwrap(), sealed.canonical_bytes().unwrap());
+        assert_eq!(
+            artifact.canonical_bytes().unwrap(),
+            sealed.canonical_bytes().unwrap()
+        );
         // And content bytes are deterministic.
         assert_eq!(
             sealed.canonical_bytes().unwrap(),

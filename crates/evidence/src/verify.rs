@@ -90,8 +90,8 @@ impl EvidenceVerificationSummary {
 
 impl From<&EvidenceVerification> for EvidenceVerificationSummary {
     fn from(v: &EvidenceVerification) -> Self {
-        let records_ok = !v.records.is_empty()
-            && v.records.iter().all(|o| o.status().is_verified());
+        let records_ok =
+            !v.records.is_empty() && v.records.iter().all(|o| o.status().is_verified());
         Self {
             artifact: v.artifact_verified,
             aggregate: v.aggregate.is_verified(),
@@ -150,9 +150,8 @@ pub fn verify_package(
 
     let records_ok = outcomes.iter().all(|o| o.status().is_verified());
     structure.records = outcomes;
-    structure.verified = structure.artifact_verified
-        && structure.aggregate.is_verified()
-        && records_ok;
+    structure.verified =
+        structure.artifact_verified && structure.aggregate.is_verified() && records_ok;
     Ok(structure)
 }
 
@@ -192,7 +191,10 @@ mod tests {
 
     fn seeded_package(
         seeds: &[&str],
-    ) -> (safeguard_audit_memory_store::MemoryEventStore, EvidencePackage) {
+    ) -> (
+        safeguard_audit_memory_store::MemoryEventStore,
+        EvidencePackage,
+    ) {
         let actor = AuditorId::derive(&["aud-1"]);
         let mut store = builder_tests::seeded_store(seeds);
         let builder = EvidenceBuilder::new(
@@ -205,7 +207,9 @@ mod tests {
         );
         let ids: Vec<RecordId> = store
             .query(
-                &safeguard_audit_storage::AuditQuery::builder().build().unwrap(),
+                &safeguard_audit_storage::AuditQuery::builder()
+                    .build()
+                    .unwrap(),
                 &safeguard_audit_core::PageRequest::new(seeds.len()).unwrap(),
             )
             .unwrap()
@@ -255,14 +259,12 @@ mod tests {
     #[test]
     fn a_tampered_artifact_digest_fails_structure_verification() {
         let (store, package) = seeded_package(&["a"]);
-        let tampered = package
-            .clone()
-            .with_artifact_for_test(
-                package
-                    .artifact()
-                    .clone()
-                    .with_digest(IntegrityDigest::sha256("ee".repeat(32)).unwrap()),
-            );
+        let tampered = package.clone().with_artifact_for_test(
+            package
+                .artifact()
+                .clone()
+                .with_digest(IntegrityDigest::sha256("ee".repeat(32)).unwrap()),
+        );
         let structure = verify_package_structure(&tampered).unwrap();
         assert!(!structure.artifact_verified());
         assert!(!structure.verified());

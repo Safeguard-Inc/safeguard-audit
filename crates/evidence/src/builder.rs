@@ -159,7 +159,11 @@ impl EvidenceBuilder {
 
         // Content digest over the artifact's canonical bytes (integrity
         // slots excluded); the manifest slot is attached after hashing.
-        let digest = hash_bytes(&artifact.canonical_bytes().map_err(EvidenceError::from_core)?);
+        let digest = hash_bytes(
+            &artifact
+                .canonical_bytes()
+                .map_err(EvidenceError::from_core)?,
+        );
         artifact = artifact.with_digest(digest);
 
         // Ledger-bounded manifest range when every source record names a
@@ -245,8 +249,7 @@ impl EvidenceBuilder {
             let Some(integrity) = &record.integrity else {
                 continue;
             };
-            let recomputed =
-                record_digest(record).map_err(EvidenceError::from_integrity)?;
+            let recomputed = record_digest(record).map_err(EvidenceError::from_integrity)?;
             if recomputed != integrity.digest {
                 return Err(EvidenceError::TamperedSource(format!(
                     "record {} carries a stored digest that no longer matches its body",
@@ -263,8 +266,7 @@ pub(crate) mod tests {
     use super::*;
     use safeguard_audit_authorization::{Credential, Grant, Registry};
     use safeguard_audit_core::{
-        AuditEvent, AuditRecord, AuditorRole, EventKind, EventProvenance, FixedClock,
-        OriginKind,
+        AuditEvent, AuditRecord, AuditorRole, EventKind, EventProvenance, FixedClock, OriginKind,
     };
     use safeguard_audit_integrity::seal_standalone;
     use safeguard_audit_memory_store::MemoryEventStore;
@@ -303,8 +305,7 @@ pub(crate) mod tests {
     }
 
     fn record(seed: &str, ledger: Option<i64>) -> AuditRecord {
-        let provenance =
-            EventProvenance::new(OriginKind::OnChain, "soroban", parser()).unwrap();
+        let provenance = EventProvenance::new(OriginKind::OnChain, "soroban", parser()).unwrap();
         let mut event = AuditEvent::new(
             safeguard_audit_core::EventId::derive(&[seed]),
             EventKind::TransferDenied,
@@ -326,9 +327,7 @@ pub(crate) mod tests {
     pub(crate) fn seeded_store(seeds: &[&str]) -> MemoryEventStore {
         let mut store = MemoryEventStore::new();
         for (i, seed) in seeds.iter().enumerate() {
-            store
-                .insert(record(seed, Some(100 + i as i64)))
-                .unwrap();
+            store.insert(record(seed, Some(100 + i as i64))).unwrap();
         }
         store
     }
@@ -351,7 +350,9 @@ pub(crate) mod tests {
     fn ids(store: &MemoryEventStore, count: usize) -> Vec<RecordId> {
         store
             .query(
-                &safeguard_audit_storage::AuditQuery::builder().build().unwrap(),
+                &safeguard_audit_storage::AuditQuery::builder()
+                    .build()
+                    .unwrap(),
                 &safeguard_audit_core::PageRequest::new(count).unwrap(),
             )
             .unwrap()
@@ -364,7 +365,10 @@ pub(crate) mod tests {
     #[test]
     fn building_over_verified_records_seals_artifact_and_manifest() {
         let aud = auditor("aud-1");
-        let b = builder(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &aud));
+        let b = builder(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &aud,
+        ));
         let mut store = seeded_store(&["a", "b"]);
         let opts = options(EvidenceKind::TransactionEvidence, ids(&store, 2), &aud);
         let package = b.build(&mut store, &opts).unwrap();
@@ -376,7 +380,9 @@ pub(crate) mod tests {
         // The generation is recorded in the audit store.
         let page = store
             .query(
-                &safeguard_audit_storage::AuditQuery::builder().build().unwrap(),
+                &safeguard_audit_storage::AuditQuery::builder()
+                    .build()
+                    .unwrap(),
                 &safeguard_audit_core::PageRequest::new(10).unwrap(),
             )
             .unwrap();
@@ -387,7 +393,10 @@ pub(crate) mod tests {
     #[test]
     fn building_is_deterministic_regardless_of_id_order() {
         let aud = auditor("aud-1");
-        let b = builder(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &aud));
+        let b = builder(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &aud,
+        ));
         let store = seeded_store(&["a", "b", "c"]);
 
         let mut rev = store.clone();
@@ -410,7 +419,10 @@ pub(crate) mod tests {
     #[test]
     fn missing_records_are_rejected() {
         let aud = auditor("aud-1");
-        let b = builder(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &aud));
+        let b = builder(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &aud,
+        ));
         let mut store = seeded_store(&["a"]);
         let mut opts = options(EvidenceKind::TransactionEvidence, ids(&store, 1), &aud);
         opts.record_ids.push(RecordId::derive(&["nope"]));
@@ -421,7 +433,10 @@ pub(crate) mod tests {
     #[test]
     fn tampered_sources_are_refused() {
         let aud = auditor("aud-1");
-        let b = builder(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &aud));
+        let b = builder(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &aud,
+        ));
         // The store is append-only, so the realistic corruption is a stored
         // record whose integrity block no longer matches its body (as a
         // tampered store would present it). The gate must refuse it.
@@ -442,7 +457,10 @@ pub(crate) mod tests {
     #[test]
     fn unsealed_records_build_with_their_digest_captured_in_the_manifest() {
         let aud = auditor("aud-1");
-        let b = builder(authorizer(safeguard_audit_core::AuditorRole::SeniorAuditor, &aud));
+        let b = builder(authorizer(
+            safeguard_audit_core::AuditorRole::SeniorAuditor,
+            &aud,
+        ));
         // The pipeline seals history at verification time, so stored
         // records may carry no integrity block. Such records are accepted;
         // the manifest recomputes and captures each record's digest from
@@ -467,7 +485,9 @@ pub(crate) mod tests {
         // stored body - the captured state, not a copied stored value.
         let stored = store
             .query(
-                &safeguard_audit_storage::AuditQuery::builder().build().unwrap(),
+                &safeguard_audit_storage::AuditQuery::builder()
+                    .build()
+                    .unwrap(),
                 &safeguard_audit_core::PageRequest::new(10).unwrap(),
             )
             .unwrap();
@@ -485,7 +505,10 @@ pub(crate) mod tests {
     #[test]
     fn unauthorized_actors_are_denied() {
         let aud = auditor("aud-1");
-        let b = builder(authorizer(safeguard_audit_core::AuditorRole::ReadOnlyReviewer, &aud));
+        let b = builder(authorizer(
+            safeguard_audit_core::AuditorRole::ReadOnlyReviewer,
+            &aud,
+        ));
         let mut store = seeded_store(&["a"]);
         let opts = options(EvidenceKind::TransactionEvidence, ids(&store, 1), &aud);
         let err = b.build(&mut store, &opts).unwrap_err();

@@ -98,8 +98,7 @@ fn every_vector_produces_its_declared_verdict() {
     for (path, vector) in &vectors {
         let name = path.file_name().unwrap().to_string_lossy();
         assert_eq!(
-            vector.scheme,
-            "evidence-package",
+            vector.scheme, "evidence-package",
             "{name} must declare scheme evidence-package"
         );
         let (verified, artifact, aggregate) = run_vector(vector);

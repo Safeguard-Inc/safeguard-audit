@@ -57,7 +57,7 @@ pub mod events;
 pub mod model;
 pub mod verify;
 
-pub use builder::{EvidenceBuilder, EvidenceBuildOptions};
+pub use builder::{EvidenceBuildOptions, EvidenceBuilder};
 pub use errors::{EvidenceError, EvidenceResult};
 pub use events::record_generation;
 pub use model::{EvidenceManifest, EvidencePackage};

@@ -337,6 +337,11 @@ impl IntegrityManifest {
         &self.manifest_id
     }
 
+    /// The software version that generated the manifest.
+    pub fn software_version(&self) -> &str {
+        &self.software_version
+    }
+
     /// The first ledger covered, when the range is ledger-bounded.
     pub fn from_ledger(&self) -> Option<i64> {
         self.from_ledger

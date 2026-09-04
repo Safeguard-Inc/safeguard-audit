@@ -587,9 +587,9 @@ fn invariant_evidence_packages_are_reproducible_and_tamper_evident() {
     // makes the whole package fail verification — never a partial pass.
     use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
     use safeguard_audit_core::{
-        AccessScope, AuditorId, AuditorRole, AuditEvent, AuditRecord, EventKind,
-        EventProvenance, EvidenceKind, FixedClock, NetworkId, OriginKind, PageRequest,
-        RecordId, Timestamp, VersionLabel,
+        AccessScope, AuditEvent, AuditRecord, AuditorId, AuditorRole, EventKind, EventProvenance,
+        EvidenceKind, FixedClock, NetworkId, OriginKind, PageRequest, RecordId, Timestamp,
+        VersionLabel,
     };
     use safeguard_audit_evidence::{EvidenceBuildOptions, EvidenceBuilder};
     use safeguard_audit_integrity::seal_standalone;
@@ -655,7 +655,10 @@ fn invariant_evidence_packages_are_reproducible_and_tamper_evident() {
         EvidenceBuildOptions::new(EvidenceKind::TransactionEvidence, ids, senior.clone()).unwrap();
     let first = builder.build(&mut store, &options).unwrap();
     let second = builder.build(&mut store, &options).unwrap();
-    assert_eq!(first, second, "same sources and configuration reproduce byte-identical evidence");
+    assert_eq!(
+        first, second,
+        "same sources and configuration reproduce byte-identical evidence"
+    );
 
     // Verification is conjunctive: flip the artifact digest, then the
     // aggregate, then a manifest entry — each alone must fail the package.
@@ -679,8 +682,7 @@ fn invariant_evidence_packages_are_reproducible_and_tamper_evident() {
         .verified());
 
     let mut value = serde_json::to_value(&first).unwrap();
-    value["manifest"]["entries"][1]["digest"]["value"] =
-        serde_json::Value::String("dd".repeat(32));
+    value["manifest"]["entries"][1]["digest"]["value"] = serde_json::Value::String("dd".repeat(32));
     let tampered: safeguard_audit_evidence::EvidencePackage =
         serde_json::from_value(value).unwrap();
     assert!(!safeguard_audit_evidence::verify_package(&tampered, &store)

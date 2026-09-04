@@ -141,11 +141,7 @@ fn main() {
             &PageRequest::new(10).unwrap(),
         )
         .unwrap();
-    let record_ids: Vec<_> = page
-        .items()
-        .iter()
-        .map(|r| r.record_id.clone())
-        .collect();
+    let record_ids: Vec<_> = page.items().iter().map(|r| r.record_id.clone()).collect();
     println!(
         "Ingested {} records: {}",
         record_ids.len(),
@@ -192,8 +188,18 @@ fn main() {
         .expect("the generation is recorded");
     println!(
         "Recorded evidence-generated event (kind {}, records {})",
-        generation.event.details.get("kind").map(String::as_str).unwrap_or("?"),
-        generation.event.details.get("records").map(String::as_str).unwrap_or("?")
+        generation
+            .event
+            .details
+            .get("kind")
+            .map(String::as_str)
+            .unwrap_or("?"),
+        generation
+            .event
+            .details
+            .get("records")
+            .map(String::as_str)
+            .unwrap_or("?")
     );
 
     // --- Verify at both depths. ---------------------------------------
@@ -219,5 +225,7 @@ fn main() {
         structure.verified(),
         structure.artifact_verified()
     );
-    println!("\nOK: the package verifies, its generation is on the trail, and tampering is detectable.");
+    println!(
+        "\nOK: the package verifies, its generation is on the trail, and tampering is detectable."
+    );
 }
