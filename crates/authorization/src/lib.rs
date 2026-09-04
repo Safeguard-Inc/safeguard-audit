@@ -66,7 +66,13 @@ pub mod registry;
 pub mod roles;
 pub mod scopes;
 
+pub use access_log::{AccessLog, AccessLogWithStore, NoopAccessLog, StoreAccessLog};
+pub use authorizer::reason;
+pub use authorizer::Authorizer;
+pub use credentials::{Credential, CredentialStatus};
 pub use errors::{AuthorizationError, AuthorizationResult};
+pub use permissions::{PermissionReason, PermissionSet};
+pub use registry::{Grant, Registry};
 
 /// The crate's stable parser/version label for events it derives.
 pub const SOURCE_LABEL: &str = "safeguard-audit-authorization";
