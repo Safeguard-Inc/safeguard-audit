@@ -38,6 +38,7 @@ pub mod record;
 pub mod report;
 pub mod retention;
 pub mod serialization;
+pub mod source;
 pub mod timestamps;
 
 pub use audit::RECORD_SCHEMA_VERSION;
@@ -72,4 +73,5 @@ pub use report::{
     GeneratorVersions, Report, ReportKind, ReportQuery, ReportRequest, ReportSummary,
 };
 pub use retention::{RetentionPeriod, RetentionPolicy, RetentionStatus};
+pub use source::{EventSource, RawEventItem, SourceError, SourcePage, SourceResult};
 pub use timestamps::{Clock, FixedClock, SystemClock, TimeRange, Timestamp};
