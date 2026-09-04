@@ -239,3 +239,166 @@ fn invariant_every_stored_record_holds_a_valid_event() {
         assert_eq!(rederived.record_id, record.record_id);
     }
 }
+
+#[test]
+fn invariant_no_protected_data_access_without_authorization() {
+    // Authorization is the only gate in front of protected data: every
+    // access to a restricted/highly-restricted record must trace to a
+    // granted classification scope. There is no path where data at a
+    // classification above the grant leaks.
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry};
+    use safeguard_audit_authorization::scopes::covers_classification;
+    use safeguard_audit_core::{
+        AccessScope, AuditorId, AuditorRole, DataClassification, FixedClock, NetworkId, Timestamp,
+    };
+
+    let auditor = AuditorId::derive(&["invariant-auditor"]);
+    let mut registry = Registry::new();
+    registry
+        .register(
+            Grant::new(auditor.clone(), AuditorRole::ComplianceOfficer)
+                .with_scope(AccessScope::Network(NetworkId::new(NetworkId::TESTNET).unwrap()))
+                .with_scope(AccessScope::Classification(DataClassification::Restricted))
+                .with_credential(Credential::new(
+                    auditor.clone(),
+                    "material",
+                    Timestamp::from_unix_seconds(9_999_999_999),
+                )),
+        )
+        .unwrap();
+    let authorizer = Authorizer::new(
+        registry,
+        FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000)),
+    );
+
+    // The grant covers restricted data and everything less sensitive.
+    let scopes = vec![AccessScope::Classification(DataClassification::Restricted)];
+    assert!(covers_classification(&scopes, DataClassification::Restricted));
+    assert!(covers_classification(&scopes, DataClassification::Confidential));
+    // ...but never highly-restricted data, no matter the role.
+    assert!(!covers_classification(&scopes, DataClassification::HighlyRestricted));
+
+    // And the authorizer agrees end to end: requesting protected data at
+    // the granted level succeeds; above it is out of scope.
+    let within = authorizer
+        .authorize(
+            &auditor,
+            safeguard_audit_core::AccessAction::RequestProtectedData,
+            &AccessScope::Classification(DataClassification::Restricted),
+        )
+        .unwrap();
+    assert!(within.allowed());
+    let beyond = authorizer
+        .authorize(
+            &auditor,
+            safeguard_audit_core::AccessAction::RequestProtectedData,
+            &AccessScope::Classification(DataClassification::HighlyRestricted),
+        )
+        .unwrap();
+    assert!(!beyond.allowed());
+}
+
+#[test]
+fn invariant_access_entries_always_carry_attribution() {
+    // Every recorded access answers who/what/when. A stored audit-access
+    // record without an attributed auditor or time would break the
+    // accountability the whole subsystem exists for.
+    use safeguard_audit_authorization::{Authorizer, Credential, Grant, Registry,
+        StoreAccessLog};
+    use safeguard_audit_core::{
+        AccessAction, AccessScope, AuditorId, AuditorRole, FixedClock, NetworkId, Timestamp,
+        VersionLabel,
+    };
+    use safeguard_audit_memory_store::MemoryEventStore;
+
+    let auditor = AuditorId::derive(&["attribution-auditor"]);
+    let mut registry = Registry::new();
+    registry
+        .register(
+            Grant::new(auditor.clone(), AuditorRole::SeniorAuditor)
+                .with_scope(AccessScope::Network(NetworkId::new(NetworkId::TESTNET).unwrap()))
+                .with_credential(Credential::new(
+                    auditor.clone(),
+                    "material",
+                    Timestamp::from_unix_seconds(9_999_999_999),
+                )),
+        )
+        .unwrap();
+    let authorizer = Authorizer::new(
+        registry,
+        FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000)),
+    );
+    let mut store = MemoryEventStore::new();
+
+    // Record both an allowed and a denied decision.
+    for action in [AccessAction::ReadRecord, AccessAction::ExportRecords] {
+        let decision = authorizer
+            .authorize(
+                &auditor,
+                action,
+                &AccessScope::Network(NetworkId::new(NetworkId::TESTNET).unwrap()),
+            )
+            .unwrap();
+        let entry = authorizer
+            .entry_for_decision(&decision, Some("rec_target"))
+            .unwrap();
+        let log = StoreAccessLog::new(
+            NetworkId::new(NetworkId::TESTNET).unwrap(),
+            "safeguard-audit-authorization",
+            VersionLabel::new("1.0.0").unwrap(),
+            FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000)),
+        );
+        log.record_into(&entry, &mut store).unwrap();
+    }
+
+    let records = store
+        .query(
+            &AuditQuery::builder().build().unwrap(),
+            &safeguard_audit_core::PageRequest::new(10).unwrap(),
+        )
+        .unwrap()
+        .items()
+        .to_vec();
+    assert_eq!(records.len(), 2);
+    for record in records {
+        assert_eq!(record.event.kind, EventKind::AuditAccess);
+        let details = &record.event.details;
+        assert_eq!(
+            details.get("auditor").map(String::as_str),
+            Some(auditor.as_str()),
+            "audit-access record must name the acting auditor"
+        );
+        assert!(
+            details.contains_key("accessed_at"),
+            "audit-access record must carry the access time"
+        );
+        assert!(details.contains_key("action"));
+        assert!(details.contains_key("scope"));
+        assert!(details.contains_key("result"));
+    }
+}
+
+#[test]
+fn invariant_unknown_auditors_cannot_force_a_decision() {
+    // An unregistered caller gets a clean denial with a reason code, and
+    // the denial is itself recorded — escalation cannot hide behind an
+    // unregistered identity.
+    use safeguard_audit_authorization::{reason, Authorizer, Registry};
+    use safeguard_audit_core::{AccessAction, AccessScope, AuditorId, FixedClock, Timestamp};
+
+    let authorizer = Authorizer::new(
+        Registry::new(),
+        FixedClock::at(Timestamp::from_unix_seconds(1_700_000_000)),
+    );
+    let ghost = AuditorId::derive(&["ghost"]);
+    let decision = authorizer
+        .authorize(
+            &ghost,
+            AccessAction::ExportRecords,
+            &AccessScope::All,
+        )
+        .unwrap();
+    assert!(!decision.allowed());
+    assert_eq!(decision.reason(), Some(reason::UNKNOWN_AUDITOR));
+    assert_eq!(decision.decided_by(), Some(&ghost));
+}
