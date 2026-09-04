@@ -8,12 +8,17 @@
 //! field has existed since the domain foundation; this is where it is
 //! actually applied before a record's content reaches a reader.
 //!
-//! [`RecordDisclosure`] packages that view into the shape a reader at a
-//! ceiling may actually receive: the public identifiers and metadata pass
-//! through untouched, every detail value is redacted, and the withheld
-//! keys are listed as proof. It is serializable so exporters can emit it
-//! directly, and deterministic so the same record and ceiling always
-//! project to the same bytes.
+//! The ceiling is [`Option`]: `Some(ceiling)` redacts fields at or above
+//! it, while `None` means no classification ceiling applies (the reader's
+//! grants cover every classification, e.g. an `All` scope) and every
+//! value passes through.
+//!
+//! [`RecordDisclosure`] packages a view into the shape a reader may
+//! actually receive: the public identifiers and metadata pass through
+//! untouched, every detail value is disclosed or redacted per the
+//! ceiling, and the withheld keys are listed as proof. It is serializable
+//! so exporters can emit it directly, and deterministic so the same
+//! record and ceiling always project to the same bytes.
 
 use std::collections::BTreeMap;
 
@@ -23,15 +28,54 @@ use safeguard_audit_core::{
     AuditRecord, DataClassification, EventKind, NetworkId, RecordId, Timestamp,
 };
 
-use crate::redaction::redact_details;
+/// The disclosed `details` view of `record` at `ceiling`.
+///
+/// Keys the record's `redactions` table declares below the ceiling pass
+/// through untouched; every other key inherits the record's own
+/// classification, so protected values are replaced with the redaction
+/// marker rather than leaked. With `ceiling == None` no classification
+/// redaction applies and every value passes through. Deterministic for a
+/// fixed record and ceiling.
+pub fn disclose_details(
+    record: &AuditRecord,
+    ceiling: Option<DataClassification>,
+) -> BTreeMap<String, String> {
+    let Some(ceiling) = ceiling else {
+        return record.event.details.clone();
+    };
+    crate::redaction::redact_details(
+        &record.event.details,
+        &record.redactions,
+        record.classification,
+        ceiling,
+    )
+}
+
+/// The detail keys of `record` withheld at `ceiling`, in sorted order.
+///
+/// The machine-readable proof that accompanies a disclosed view: a
+/// consumer can see exactly which fields were treated as protected
+/// without having to scan values for the marker. With `ceiling == None`
+/// nothing is withheld.
+pub fn redacted_keys(record: &AuditRecord, ceiling: Option<DataClassification>) -> Vec<String> {
+    let Some(ceiling) = ceiling else {
+        return Vec::new();
+    };
+    crate::redaction::redacted_keys(
+        &record.event.details,
+        &record.redactions,
+        record.classification,
+        ceiling,
+    )
+}
 
 /// The disclosed projection of an [`AuditRecord`] at one ceiling.
 ///
-/// This is the *only* shape a reader at `ceiling` may receive. It carries
-/// the record's public identifiers and metadata (which are public by
-/// construction — references are never protected values), the redacted
-/// `details` view, and the sorted `redacted_keys` list proving which
-/// fields were withheld. A protected value can never appear in this
+/// This is the *only* shape a reader may receive. It carries the record's
+/// public identifiers and metadata (which are public by construction —
+/// references are never protected values), the disclosed `details` view,
+/// and the sorted `redacted_keys` list proving which fields were
+/// withheld. A protected value can never appear in a redacted
 /// projection: disclosure is a projection, never an un-redaction.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RecordDisclosure {
@@ -44,7 +88,7 @@ pub struct RecordDisclosure {
     /// When the record was created.
     pub recorded_at: Timestamp,
     /// Detail values disclosed at the ceiling (protected values replaced
-    /// with the redaction marker).
+    /// with the redaction marker when a ceiling applies).
     pub details: BTreeMap<String, String>,
     /// The detail keys withheld at the ceiling, in sorted order.
     pub redacted_keys: Vec<String>,
@@ -53,58 +97,21 @@ pub struct RecordDisclosure {
 impl RecordDisclosure {
     /// Projects `record` at `ceiling`.
     ///
-    /// Deterministic: the same record and ceiling always produce the same
-    /// projection, so disclosed output can be reproduced and verified.
-    pub fn disclose(record: &AuditRecord, ceiling: DataClassification) -> Self {
-        let details = disclose_details(record, ceiling);
-        let redacted_keys = crate::redaction::redacted_keys(
-            &record.event.details,
-            &record.redactions,
-            record.classification,
-            ceiling,
-        );
+    /// `Some(ceiling)` redacts fields at or above the ceiling; `None`
+    /// applies no classification ceiling (every classification is
+    /// covered) and discloses every value. Deterministic: the same
+    /// record and ceiling always produce the same projection, so
+    /// disclosed output can be reproduced and verified.
+    pub fn disclose(record: &AuditRecord, ceiling: Option<DataClassification>) -> Self {
         Self {
             record_id: record.record_id.clone(),
             kind: record.event.kind,
             network: record.event.network.clone(),
             recorded_at: record.recorded_at,
-            details,
-            redacted_keys,
+            details: disclose_details(record, ceiling),
+            redacted_keys: redacted_keys(record, ceiling),
         }
     }
-}
-
-/// The disclosed `details` view of `record` at `ceiling`.
-///
-/// Keys the record's `redactions` table declares below the ceiling pass
-/// through untouched; every other key inherits the record's own
-/// classification, so protected values are replaced with the redaction
-/// marker rather than leaked. Deterministic for a fixed record and
-/// ceiling.
-pub fn disclose_details(
-    record: &AuditRecord,
-    ceiling: DataClassification,
-) -> BTreeMap<String, String> {
-    redact_details(
-        &record.event.details,
-        &record.redactions,
-        record.classification,
-        ceiling,
-    )
-}
-
-/// The detail keys of `record` withheld at `ceiling`, in sorted order.
-///
-/// The machine-readable proof that accompanies a disclosed view: a
-/// consumer can see exactly which fields were treated as protected
-/// without having to scan values for the marker.
-pub fn redacted_keys(record: &AuditRecord, ceiling: DataClassification) -> Vec<String> {
-    crate::redaction::redacted_keys(
-        &record.event.details,
-        &record.redactions,
-        record.classification,
-        ceiling,
-    )
 }
 
 #[cfg(test)]
@@ -165,14 +172,14 @@ mod tests {
         );
         // The table declares the ciphertext protected; the undeclared
         // note inherits the record's confidential classification.
-        let view = disclose_details(&r, DataClassification::Confidential);
+        let view = disclose_details(&r, Some(DataClassification::Confidential));
         assert_eq!(
             view.get("amount_ciphertext").unwrap(),
             crate::REDACTED_MARKER
         );
         assert_eq!(view.get("note").unwrap(), crate::REDACTED_MARKER);
         assert_eq!(
-            redacted_keys(&r, DataClassification::Confidential),
+            redacted_keys(&r, Some(DataClassification::Confidential)),
             vec!["amount_ciphertext", "note"]
         );
     }
@@ -189,12 +196,12 @@ mod tests {
             .insert("transaction_hash".into(), DataClassification::Public);
         r.redactions
             .insert("amount".into(), DataClassification::HighlyRestricted);
-        let view = disclose_details(&r, DataClassification::Confidential);
+        let view = disclose_details(&r, Some(DataClassification::Confidential));
         assert_eq!(view.get("transaction_hash").unwrap(), TX_HASH);
         assert_eq!(view.get("amount").unwrap(), crate::REDACTED_MARKER);
         // The hash is not withheld; the amount is.
         assert_eq!(
-            redacted_keys(&r, DataClassification::Confidential),
+            redacted_keys(&r, Some(DataClassification::Confidential)),
             vec!["amount"]
         );
 
@@ -203,7 +210,7 @@ mod tests {
         let mut plain = record(&[("transaction_hash", TX_HASH)]);
         plain.classification = DataClassification::Restricted;
         assert_eq!(
-            disclose_details(&plain, DataClassification::Confidential)
+            disclose_details(&plain, Some(DataClassification::Confidential))
                 .get("transaction_hash")
                 .unwrap(),
             crate::REDACTED_MARKER
@@ -217,14 +224,14 @@ mod tests {
         // is silently public.
         let r = record(&[("note", "matched class B")]);
         assert_eq!(
-            disclose_details(&r, DataClassification::Confidential)
+            disclose_details(&r, Some(DataClassification::Confidential))
                 .get("note")
                 .unwrap(),
             crate::REDACTED_MARKER
         );
         // A senior auditor with a restricted ceiling sees it.
         assert_eq!(
-            disclose_details(&r, DataClassification::Restricted)
+            disclose_details(&r, Some(DataClassification::Restricted))
                 .get("note")
                 .unwrap(),
             "matched class B"
@@ -234,7 +241,7 @@ mod tests {
     #[test]
     fn disclosure_is_deterministic() {
         let r = record(&[("a", "1"), ("b", "2")]);
-        let ceiling = DataClassification::Confidential;
+        let ceiling = Some(DataClassification::Confidential);
         assert_eq!(disclose_details(&r, ceiling), disclose_details(&r, ceiling));
         assert_eq!(redacted_keys(&r, ceiling), redacted_keys(&r, ceiling));
     }
@@ -247,7 +254,7 @@ mod tests {
             "amount_ciphertext".into(),
             DataClassification::HighlyRestricted,
         );
-        let view = RecordDisclosure::disclose(&r, DataClassification::Confidential);
+        let view = RecordDisclosure::disclose(&r, Some(DataClassification::Confidential));
 
         // The projection's serialized bytes must not contain the value.
         let json = serde_json::to_string(&view).unwrap();
@@ -266,11 +273,27 @@ mod tests {
     }
 
     #[test]
+    fn no_ceiling_discloses_every_value() {
+        // `disclosure_ceiling` returns None when grants cover every
+        // classification (an `All` scope, or a highly-restricted grant);
+        // the projection must be able to express "no redaction".
+        let mut r = record(&[("amount_ciphertext", "enc:beef"), ("note", "denied")]);
+        r.redactions.insert(
+            "amount_ciphertext".into(),
+            DataClassification::HighlyRestricted,
+        );
+        let view = RecordDisclosure::disclose(&r, None);
+        assert_eq!(view.details.get("amount_ciphertext").unwrap(), "enc:beef");
+        assert_eq!(view.details.get("note").unwrap(), "denied");
+        assert!(view.redacted_keys.is_empty());
+    }
+
+    #[test]
     fn projection_is_deterministic_and_round_trips() {
         let mut r = record(&[("a", "1"), ("b", "2"), ("secret", "s")]);
         r.redactions
             .insert("secret".into(), DataClassification::HighlyRestricted);
-        let ceiling = DataClassification::Confidential;
+        let ceiling = Some(DataClassification::Confidential);
         let first = RecordDisclosure::disclose(&r, ceiling);
         let second = RecordDisclosure::disclose(&r, ceiling);
         assert_eq!(first, second);
@@ -295,7 +318,7 @@ mod tests {
             .insert("amount".into(), DataClassification::HighlyRestricted);
         r.redactions
             .insert("note".into(), DataClassification::Restricted);
-        let view = RecordDisclosure::disclose(&r, DataClassification::Confidential);
+        let view = RecordDisclosure::disclose(&r, Some(DataClassification::Confidential));
         let marker_keys: Vec<&String> = view
             .details
             .iter()

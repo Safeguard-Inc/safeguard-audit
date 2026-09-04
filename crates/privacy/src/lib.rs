@@ -17,8 +17,11 @@
 //! reporting service already enforces (`is_at_least(ceiling)` excludes).
 //! Fields the record's `redactions` table does not name inherit the
 //! record's own classification, so an empty table protects at the record
-//! level instead of silently disclosing. Redaction is deterministic:
-//! the same record and ceiling always produce the same output.
+//! level instead of silently disclosing. Ceilings are derived from the
+//! requester's granted scopes; when the grants cover every
+//! classification (an `All` scope), the ceiling is `None` and no
+//! classification redaction applies. Redaction is deterministic: the
+//! same record and ceiling always produce the same output.
 //!
 //! ## What this crate is *not*
 //!
