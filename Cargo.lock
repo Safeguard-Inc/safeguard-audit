@@ -241,6 +241,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "safeguard-audit-soroban"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "safeguard-audit-storage"
 version = "0.1.0"
 dependencies = [

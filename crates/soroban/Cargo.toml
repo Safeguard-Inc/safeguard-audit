@@ -1,0 +1,17 @@
+[package]
+name = "safeguard-audit-soroban"
+description = "Soroban adapter for the Safeguard audit layer: a provider-boundary crate modeling the verified Stellar RPC getEvents wire shape (contract/system events with ledger, transaction, operation, and topic metadata) as the input door for the ingestion pipeline, with no dependency on any RPC client and no invented contract semantics."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+serde.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
