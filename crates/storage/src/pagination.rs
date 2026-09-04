@@ -178,11 +178,13 @@ mod tests {
             PositionKey::of(&event("e", Some(10), Some(0), None, 300)),
         ];
         keys.sort();
-        // Missing ledger placement sorts before ledgered events (None sorts
-        // first); then ledger 9 < 10; within ledger 10, op 0 < op 1; equal
-        // keys fall back to recorded_at (50 < 100) then record id.
+        // Missing ledger placement sorts after ledgered events (the
+        // uncertainty band: unknown placement is never interleaved with
+        // known history); then ledger 9 < 10; within ledger 10, op 0 <
+        // op 1; equal keys fall back to recorded_at (50 < 100) then
+        // record id.
         let order: Vec<Option<i64>> = keys.iter().map(|k| k.ledger).collect();
-        assert_eq!(order, vec![None, Some(9), Some(10), Some(10), Some(10)]);
+        assert_eq!(order, vec![Some(9), Some(10), Some(10), Some(10), None]);
     }
 
     #[test]
