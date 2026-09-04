@@ -14,9 +14,22 @@ use safeguard_audit_storage::AuditQuery;
 
 /// Maps a report query to the store's audit query.
 ///
-/// Returns an error for incoherent filters: an unparsable network label
-/// or a token on a different network than the query's network.
+/// Returns an error for incoherent filters: an unparsable network label,
+/// a token on a different network than the query's network, or an
+/// inverted time range. The range check matters because wire queries
+/// deserialize through serde, which bypasses [`TimeRange::new`]'s
+/// constructor validation.
 pub fn to_audit_query(query: &ReportQuery) -> AuditResult<AuditQuery> {
+    if let Some(range) = query.time_range {
+        if let (Some(start), Some(end)) = (range.start(), range.end()) {
+            if start > end {
+                return Err(safeguard_audit_core::AuditError::InvalidQuery(
+                    "report query time range starts after it ends".into(),
+                ));
+            }
+        }
+    }
+
     let mut builder = AuditQuery::builder();
 
     if let Some(network) = &query.network {
@@ -82,6 +95,19 @@ mod tests {
     fn bad_network_labels_are_rejected() {
         let query = ReportQuery {
             network: Some("not-a-network!".into()),
+            ..ReportQuery::all()
+        };
+        assert!(to_audit_query(&query).is_err());
+    }
+
+    #[test]
+    fn inverted_time_ranges_are_rejected() {
+        // Wire queries deserialize through serde, bypassing TimeRange::new;
+        // the mapping must not let an inverted range reach the store.
+        let wire: TimeRange =
+            serde_json::from_str(r#"{"start": 200, "end": 100}"#).unwrap();
+        let query = ReportQuery {
+            time_range: Some(wire),
             ..ReportQuery::all()
         };
         assert!(to_audit_query(&query).is_err());

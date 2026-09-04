@@ -21,3 +21,4 @@ thiserror.workspace = true
 
 [dev-dependencies]
 safeguard-audit-memory-store = { path = "../memory-store" }
+serde_json.workspace = true
