@@ -10,7 +10,7 @@
 use safeguard_audit_core::{
     AuditRecord, CaseStatus, Clock, DataClassification, NetworkId, VersionLabel,
 };
-use safeguard_audit_events::{EventSlot, InvestigationLifecycle, LifecycleKind};
+use safeguard_audit_events::{detail_policy, EventSlot, InvestigationLifecycle, LifecycleKind};
 use safeguard_audit_storage::{EventStore, InsertOutcome};
 
 use crate::errors::{InvestigationError, InvestigationResult};
@@ -74,8 +74,14 @@ pub fn record_step(
     store: &mut dyn EventStore,
 ) -> InvestigationResult<()> {
     let event = step.to_event(source, parser)?;
-    let record = AuditRecord::from_event_classified(event, DataClassification::Confidential, clock)
-        .map_err(|e| InvestigationError::LifecycleRecord(e.to_string()))?;
+    let mut record =
+        AuditRecord::from_event_classified(event, DataClassification::Confidential, clock)
+            .map_err(|e| InvestigationError::LifecycleRecord(e.to_string()))?;
+    // The detail keys (case, actor, status, and the confidential summary)
+    // carry the declared field-level policy, so disclosure of a lifecycle
+    // record shows its operational attribution while keeping the summary
+    // confidential.
+    record.redactions = detail_policy(&record.event);
     match store.insert(record) {
         Ok(InsertOutcome::Inserted) | Ok(InsertOutcome::Duplicate) => Ok(()),
         Err(e) => Err(InvestigationError::LifecycleRecord(e.to_string())),
@@ -194,6 +200,25 @@ mod tests {
             items[0].event.details.get("case").map(String::as_str),
             Some("case_01010101010101010101010101010101")
         );
+        // The stamped record names each field's declared sensitivity:
+        // attribution is operational, the summary is confidential.
+        assert_eq!(
+            items[0].redactions.get("case"),
+            Some(&DataClassification::Operational)
+        );
+        assert_eq!(
+            items[0].redactions.get("actor"),
+            Some(&DataClassification::Operational)
+        );
+        assert_eq!(
+            items[0].redactions.get("status"),
+            Some(&DataClassification::Operational)
+        );
+        assert_eq!(
+            items[0].redactions.get("summary"),
+            Some(&DataClassification::Confidential)
+        );
+        assert_eq!(items[0].redactions.len(), items[0].event.details.len());
     }
 
     #[test]
