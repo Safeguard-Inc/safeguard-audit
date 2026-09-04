@@ -84,7 +84,8 @@ repos. Where a spec module landed elsewhere, this table says where:
 | event-normalizer modules (`normalizer`, `parser`, `validator`, `classifier`, `metadata`, `errors`) | `crates/event-normalizer/src/` |
 | event-indexer modules (`indexer`, `cursor`, `checkpoint`, `ordering`, `deduplication`, `replay`, `errors`) | `crates/event-indexer/src/` |
 | integrity modules (`hashing`, `digest`, `chain`, `manifest`, `verification`, `tamper`, `errors`) | `crates/integrity/src/` (the persisted *vocabulary* stays in `audit-core::integrity`) |
-| `test-vectors/normalization` | top-level corpus consumed at runtime by the normalizer integration test |
+| authorization modules (`roles`, `permissions`, `scopes`, `credentials`, `registry`, `authorizer`, `access_log`, `errors`) | `crates/authorization/src/` (the core *models* stay in `audit-core::authorization`) |
+| `test-vectors/normalization`, `test-vectors/authorization` | top-level corpora consumed at runtime by the normalizer/authorizer integration tests |
 | integration tests (`tests/integration/end_to_end` etc.) | `crates/integration-tests/tests/` |
 | `tests/`, `benches/`, `examples/`, `cli/`, `contracts/audit-registry`, later crates | land in later phases with their subsystems |
 
@@ -97,7 +98,7 @@ Phases:
 3. **Integrity** — canonical hashing implementation, chained digests,
    manifest generation, verification and tamper detection tooling.
 4. **Authorization** — authorizer services over the core role/scope model,
-   credential and access logging services.
+   credential and access logging services. *Complete (see `authorization.md`, `auditor-model.md`, `access-control.md`).*
 5. **Investigation** — case services, timelines, findings.
 6. **Evidence** — evidence generation, provenance, manifests, export.
 7. **Reporting** — deterministic report generation for each report kind.
