@@ -25,9 +25,11 @@
 
 pub mod correlation;
 pub mod errors;
+pub mod event;
 pub mod identifiers;
 pub mod pagination;
 pub mod privacy;
+pub mod serialization;
 pub mod timestamps;
 
 pub use correlation::{
@@ -36,6 +38,8 @@ pub use correlation::{
     TransactionReference, VersionLabel,
 };
 pub use errors::AuditError;
+pub use event::{AuditEvent, DerivationInfo, EventKind, EventOrder, EventProvenance, OriginKind};
+pub use identifiers::EventId;
 pub use pagination::{Cursor, Page, PageRequest};
 pub use privacy::DataClassification;
 pub use timestamps::{Clock, FixedClock, SystemClock, TimeRange, Timestamp};
