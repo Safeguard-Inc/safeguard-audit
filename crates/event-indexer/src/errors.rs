@@ -18,14 +18,15 @@
 //!
 //! [`AuditError`]: safeguard_audit_core::AuditError
 
-use safeguard_audit_core::{AuditError, SourceError};
+use safeguard_audit_core::AuditError;
 
 /// The structured error type for the indexer.
 #[derive(Debug, thiserror::Error)]
 pub enum IndexerError {
-    /// The event source failed to produce a page (retryable).
+    /// The event source failed to produce a page (retryable). The message
+    /// carries the source's own error text.
     #[error("source failure: {0}")]
-    Source(#[from] SourceError),
+    Source(String),
 
     /// A raw item failed normalization (per-item, not retryable as-is).
     #[error("normalization failure: {0}")]
@@ -58,7 +59,7 @@ impl IndexerError {
     /// Maps onto the core error taxonomy for uniform pipeline handling.
     pub fn into_core(self) -> AuditError {
         match self {
-            Self::Source(e) => e.into_core(),
+            Self::Source(d) => AuditError::SourceFailure(d),
             Self::Normalize(e) => e.into_core(),
             Self::Store(e) => AuditError::StorageFailure(e.to_string()),
             Self::Checkpoint(d) | Self::Ordering(d) | Self::Position(d) | Self::Internal(d) => {
@@ -78,7 +79,7 @@ mod tests {
 
     #[test]
     fn source_errors_map_onto_core_source_failures() {
-        let err = IndexerError::Source(SourceError::FetchFailed("down".into()));
+        let err = IndexerError::Source("page fetch failed".into());
         assert!(matches!(err.into_core(), AuditError::SourceFailure(_)));
     }
 

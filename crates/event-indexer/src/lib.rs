@@ -32,10 +32,12 @@ pub mod checkpoint;
 pub mod cursor;
 pub mod deduplication;
 pub mod errors;
+pub mod indexer;
 pub mod ordering;
 
 pub use checkpoint::{Checkpoint, CheckpointStore, InMemoryCheckpointStore};
 pub use cursor::{CursorError, SourceCursor};
 pub use deduplication::{classify, DedupGuard, DedupPolicy, DedupResult};
 pub use errors::{IndexerError, IndexerResult};
+pub use indexer::{Indexer, IngestReport, MalformedItemPolicy};
 pub use ordering::{compare_order, describe_difference, is_strictly_increasing};
