@@ -278,9 +278,51 @@ otherwise reach a reader:
   driving disclosure through the real service stack and store;
   `docs/privacy.md` and `docs/data-classification.md`.
 
+### Phase 9 — Stellar/Soroban and RPC (complete)
+
+The on-chain door, verified against the current Stellar API reference:
+
+- **`safeguard-audit-soroban`** — the wire model of the Stellar RPC
+  `getEvents` envelope exactly as documented (contract/system type,
+  ledger + ISO close time, StrKey contract id, the TOID-based `id`
+  dedup key, transaction/operation indices, 1-4 opaque base64 topics,
+  value, tx hash), parsed forward-tolerantly and pinned verbatim by
+  tests; a single `SorobanEvent::validate()` wire-coherence door both
+  the source and the mapping run; `SorobanEventSource` implementing
+  the core `EventSource` door with raw items positioned by their own
+  TOID id, sound cursor resumption (never re-serving, rejecting
+  out-of-order pages), and an operator contract registry admitting
+  recognized contracts per network — system and unregistered events
+  are skipped with an observable count, empty registries admit
+  nothing, and each item is stamped with its contract's label;
+  deterministic `event_id` from network + TOID id (kind-independent,
+  losslessly reproducible from the resume position); and the strict
+  RFC 3339 close-time mapping that round-trips against the core
+  renderer, plus adapter-side 64-lowercase-hex tx-hash enforcement.
+- **`safeguard-audit-rpc`** — the JSON-RPC `getEvents` request params
+  (ledger bounds, cursor exclusivity, up to five filters with contract
+  and topic cardinality, 1-10,000 limit) and response envelope, both
+  verified and pinned against the documentation's own example; the
+  `EventsRpc` client contract with an `EventsRpcFeed` bridge that
+  translates resume positions into cursor semantics exactly as
+  documented; a retry/timeout policy that retries only transport and
+  generic server-error classes with bounded exponential backoff; and a
+  clearly-labeled recorded-event mock.
+- **Fixtures, vectors, invariants** — `fixtures/soroban` wire pages;
+  `test-vectors/soroban` (valid + nine invalid vectors, one per
+  rejection class) with an executable runner; end-to-end adapter tests
+  over the fixtures and cross-cutting invariants (served-set
+  invariance under page size, safe advance through fully-skipped
+  pages, byte-deterministic drains).
+- **Upstream gate** — converting a recognized contract's wire event
+  into an audit event kind stays gated on the real `safeguard-hooks`
+  payload schemas; the adapter stops at scheme-labeled raw items
+  rather than inventing a payload mapping.
+- **Docs** — `docs/soroban.md`, `docs/rpc.md`.
+
 ### Later phases
 
-Phases 9+ (Soroban/RPC adapters, the simulator bridge, the optional
-on-chain registry, and security/performance hardening) are planned; see
+Phases 10+ (the simulator bridge, the optional on-chain registry, and
+security/performance hardening) are planned; see
 `docs/architecture.md` for the map and this file will record each as it
 lands.

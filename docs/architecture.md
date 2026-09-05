@@ -64,9 +64,10 @@ storage ◀───────┘   (EventStore trait consumed by services and
 ```
 
 Concretely: `audit-events → audit-core`; `storage → audit-core`;
-`memory-store → storage`; a future `soroban` adapter depends on
-`audit-core`/`audit-events` — never the reverse. Core contains no database,
-no RPC, and no protocol types.
+`memory-store → storage`; `soroban → audit-core`; `rpc → soroban` (an
+RPC transport implements the `SorobanEventFeed` door soroban defines) —
+never the reverse. Core contains no database, no RPC, and no protocol
+types.
 
 ## Phase map and module → home
 
@@ -89,7 +90,10 @@ repos. Where a spec module landed elsewhere, this table says where:
 | evidence modules (`builder`, `verify`, `model`, `events`, `errors`) | `crates/evidence/src/` (the core *models* stay in `audit-core::evidence`; generation *events* stay in `audit-events::evidence`; hashing primitives stay in `integrity`) |
 | reporting modules (`service`, `query`, `events`, `errors`) | `crates/reporting/src/` (the core *models* stay in `audit-core::report`; generation *events* stay in `audit-events::report`) |
 | privacy spec modules (redaction, classification, disclosure, protected fields) and decryption modules | `crates/privacy/src/` (`redaction`, `disclosure`, `ceiling`); the vocabulary stays in `audit-core::privacy`; the decryption boundary in `audit-core::decryption`; declared detail-key policies in `audit-events::classify` |
-| `test-vectors/normalization`, `test-vectors/authorization`, `test-vectors/evidence`, `test-vectors/reporting` | top-level corpora consumed at runtime by the normalizer/authorizer/evidence/reporting integration tests |
+| soroban spec modules (`events`, `contract`, `transaction`, `operation`, `ledger`) | `crates/soroban/src/` (`wire`, `source`, `mapping`, `identity`, `registry`) — the verified getEvents wire model and the registry-gated ingestion door; no RPC client, no invented payload semantics |
+| rpc spec modules (`client`, `events`, `transactions`, `ledgers`, `pagination`, `errors`) | `crates/rpc/src/` (`events`, `errors`, `retry`, `mock`) — the getEvents JSON-RPC protocol shapes, the `EventsRpc` client contract, retry/timeout policy, and the labeled mock; transport stays out of the repository |
+| `test-vectors/normalization`, `test-vectors/authorization`, `test-vectors/evidence`, `test-vectors/reporting`, `test-vectors/soroban` | top-level corpora consumed at runtime by the normalizer/authorizer/evidence/reporting/soroban integration tests |
+| `fixtures/soroban` | committed getEvents wire pages feeding the mock-RPC → feed → source adapter tests |
 | integration tests (`tests/integration/end_to_end` etc.) | `crates/integration-tests/tests/` |
 | `tests/`, `benches/`, `examples/`, `cli/`, `contracts/audit-registry`, later crates | land in later phases with their subsystems |
 
@@ -115,6 +119,8 @@ Phases:
    controls, the `DecryptionProvider` boundary.
    *Complete (see `privacy.md`, `data-classification.md`).*
 9. **Stellar/Soroban** — the Soroban event adapter, RPC abstraction.
+   *Complete (see `soroban.md`, `rpc.md`). Payload-to-audit-kind
+   mapping stays gated on the upstream `safeguard-hooks` schemas.*
 10. **Simulator** — the crucible-simulator bridge for deterministic tests.
 11. **On-chain registry** — the minimal optional `audit-registry` contract
     (commitments only), if the architecture justifies it.
