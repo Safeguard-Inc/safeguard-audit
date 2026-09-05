@@ -18,6 +18,10 @@ Layout:
   algorithm / bad hex). Content-level tamper detection (digest mismatch
   against recomputed values) is exercised by the integrity crate's tests,
   not by fixtures, because only recomputation can catch it.
+- `soroban/` — raw Stellar RPC `getEvents` wire pages, exactly as a
+  node returns them (the envelope shape modeled by `safeguard-audit-soroban`):
+  contract-emitted pages plus a mixed page exercising admission
+  (system and unregistered-contract events alongside a recognized one).
 - `evidence/`, `reports/`, `authorization/`, `auditors/`,
   `investigations/`, `cursors/` — the remaining artifact contracts.
 
