@@ -22,7 +22,7 @@
 use safeguard_audit_core::source::RawEventItem;
 use safeguard_audit_core::{EventSource, SourceError, SourcePage, SourceResult};
 
-use crate::wire::SorobanEventsResult;
+use crate::wire::{is_toid_id, SorobanEventsResult};
 
 /// The maximum page the source will ask a feed for, mirroring the RPC's
 /// hardcoded getEvents limit.
@@ -100,12 +100,12 @@ impl<F: SorobanEventFeed> EventSource for SorobanEventSource<F> {
         let mut items = Vec::with_capacity(page.events.len());
         let mut previous: Option<&str> = None;
         for event in &page.events {
+            // Wire-level structural coherence is checked here, at the
+            // door, via the single validate() entry point: a malformed
+            // event (bad TOID id, non-positive ledger, wrong topic
+            // count, malformed hash) never becomes a raw item.
+            event.validate().map_err(SourceError::InvalidItem)?;
             let id = event.id.as_str();
-            if !is_toid_id(id) {
-                return Err(SourceError::InvalidItem(format!(
-                    "event id {id} is not a TOID (19-digit TOID + 10-digit index)"
-                )));
-            }
             if let Some(after) = after {
                 if id <= after {
                     // The feed re-served an event at or before the resume
@@ -129,20 +129,6 @@ impl<F: SorobanEventFeed> EventSource for SorobanEventSource<F> {
 
         Ok(SourcePage::new(items, page.cursor.clone()))
     }
-}
-
-/// Whether `id` is a TOID event id: a 19-digit TOID, a hyphen, and a
-/// 10-digit zero-padded event index (the getEvents `id` shape).
-///
-/// The fixed widths make plain lexicographic comparison equal to
-/// chronological comparison, which is what the ordering guarantees rely
-/// on.
-pub(crate) fn is_toid_id(id: &str) -> bool {
-    let bytes = id.as_bytes();
-    bytes.len() == 30
-        && bytes[19] == b'-'
-        && bytes[..19].iter().all(|b| b.is_ascii_digit())
-        && bytes[20..].iter().all(|b| b.is_ascii_digit())
 }
 
 #[cfg(test)]

@@ -80,6 +80,82 @@ pub struct SorobanEvent {
     pub tx_hash: Option<String>,
 }
 
+impl SorobanEvent {
+    /// Validates the structural coherence of one wire event.
+    ///
+    /// This is the single wire-level admission check every door runs —
+    /// the source before it turns the event into a raw item, the mapping
+    /// before it derives normalized metadata. It enforces only the
+    /// *shape* `getEvents` defines: a TOID event id whose index fits the
+    /// supported range, a positive ledger sequence, 1-4 topic segments,
+    /// and (when present) the 64-lowercase-hex transaction hash.
+    ///
+    /// It deliberately does not judge *meaning*: which contract may
+    /// emit (the operator registry), what topics decode to (the
+    /// contract's surface), and whether an event matters to this
+    /// deployment (the verified payload schemas) are all separate
+    /// boundaries.
+    pub fn validate(&self) -> Result<(), String> {
+        if !is_toid_id(&self.id) {
+            return Err(format!(
+                "event id `{}` is not a TOID id (19-digit TOID + `-` + 10-digit event index)",
+                self.id
+            ));
+        }
+        // Ten digits can still overflow the event-index range
+        // (9,999,999,999 > u32::MAX), so the suffix is range-checked too.
+        let index = self.id[20..]
+            .bytes()
+            .fold(0u64, |acc, b| acc * 10 + u64::from(b - b'0'));
+        if u32::try_from(index).is_err() {
+            return Err(format!(
+                "event index `{}` exceeds the supported u32 range",
+                &self.id[20..]
+            ));
+        }
+        if self.ledger < 1 {
+            return Err(format!("ledger sequence {} is not positive", self.ledger));
+        }
+        if self.topic.is_empty() || self.topic.len() > 4 {
+            return Err(format!(
+                "topic carries {} segment(s); the wire shape allows 1-4",
+                self.topic.len()
+            ));
+        }
+        if let Some(hash) = &self.tx_hash {
+            if !is_64_lowercase_hex(hash) {
+                return Err(format!(
+                    "transaction hash `{hash}` is not the 64-lowercase-hex getEvents shape"
+                ));
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Whether `id` is a TOID event id: a 19-digit TOID, a hyphen, and a
+/// 10-digit zero-padded event index (the getEvents `id` shape).
+///
+/// The fixed widths make plain lexicographic comparison equal to
+/// chronological comparison, which is what the source's ordering
+/// guarantees rely on.
+pub(crate) fn is_toid_id(id: &str) -> bool {
+    let bytes = id.as_bytes();
+    bytes.len() == 30
+        && bytes[19] == b'-'
+        && bytes[..19].iter().all(|b| b.is_ascii_digit())
+        && bytes[20..].iter().all(|b| b.is_ascii_digit())
+}
+
+/// Whether `value` is 64 lowercase hex chars — the `getEvents` `txHash`
+/// wire shape.
+pub(crate) fn is_64_lowercase_hex(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .chars()
+            .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase())
+}
+
 /// The full `getEvents` result: the events of one page plus the RPC's
 /// reported retention window and the opaque cursor for the next page.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -209,6 +285,60 @@ mod tests {
             result.cursor.as_deref(),
             Some("0016010972359577600-0000000008")
         );
+    }
+
+    #[test]
+    fn the_documented_event_validates_cleanly() {
+        let event: SorobanEvent = serde_json::from_str(DOC_EVENT).unwrap();
+        assert_eq!(event.validate(), Ok(()));
+    }
+
+    #[test]
+    fn validate_rejects_each_structural_violation() {
+        let event: SorobanEvent = serde_json::from_str(DOC_EVENT).unwrap();
+
+        let mut bad_id = event.clone();
+        bad_id.id = "not-a-toid".into();
+        assert!(bad_id.validate().is_err());
+
+        let mut overflow_index = event.clone();
+        overflow_index.id = "0016010972359577600-9999999999".into();
+        assert!(overflow_index.validate().is_err());
+
+        let mut zero_ledger = event.clone();
+        zero_ledger.ledger = 0;
+        assert!(zero_ledger.validate().is_err());
+
+        let mut no_topic = event.clone();
+        no_topic.topic = vec![];
+        assert!(no_topic.validate().is_err());
+
+        let mut too_many_topics = event.clone();
+        too_many_topics.topic = (0..5).map(|i| format!("topic-{i}")).collect();
+        assert!(too_many_topics.validate().is_err());
+
+        let mut bad_hash = event.clone();
+        bad_hash.tx_hash =
+            Some("A5c9247b77eb04c0d857934a2e988c408167976c8acbdf3d8acf64c44deb3beb".into());
+        assert!(bad_hash.validate().is_err());
+
+        // A system event with no contract, no value, and no hash is
+        // still structurally sound.
+        let mut system = event;
+        system.event_type = SorobanEventType::System;
+        system.contract_id = None;
+        system.value = None;
+        system.tx_hash = None;
+        assert_eq!(system.validate(), Ok(()));
+    }
+
+    #[test]
+    fn toid_shape_checks_are_exact() {
+        assert!(is_toid_id("0016010972359577600-0000000001"));
+        // Wrong separators, lengths, and characters all fail.
+        assert!(!is_toid_id("0016010972359577600_0000000001"));
+        assert!(!is_toid_id("001601097235957760-0000000001"));
+        assert!(!is_toid_id("0016010972359577600-000000000a"));
     }
 
     #[test]

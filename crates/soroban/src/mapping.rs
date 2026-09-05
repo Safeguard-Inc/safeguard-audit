@@ -24,8 +24,7 @@ use safeguard_audit_core::{
     TransactionReference,
 };
 
-use crate::source::is_toid_id;
-use crate::wire::SorobanEvent;
+use crate::wire::{is_toid_id, SorobanEvent};
 
 /// The provider-neutral context of one Soroban event.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -47,6 +46,12 @@ pub struct NormalizedParts {
 /// string. Absence is never an error — a missing transaction hash or
 /// close time simply yields `None`.
 pub fn to_normalized(event: &SorobanEvent, network: NetworkId) -> AuditResult<NormalizedParts> {
+    // Structural coherence is checked through the single wire
+    // validation entry point, so mapping never runs on a malformed
+    // event even if a caller bypasses the source door.
+    event
+        .validate()
+        .map_err(|detail| AuditError::invalid_identifier("event", detail))?;
     let order = EventOrder {
         ledger_sequence: Some(event.ledger),
         transaction_position: event.transaction_index,
@@ -59,16 +64,9 @@ pub fn to_normalized(event: &SorobanEvent, network: NetworkId) -> AuditResult<No
     };
     let ledger = LedgerReference::new(network.clone(), event.ledger, close_time)?;
     let transaction = match &event.tx_hash {
+        // validate() has already enforced the 64-lowercase-hex wire
+        // shape; construction here is the final defensive gate.
         Some(raw) => {
-            // Core accepts hex or strkey structurally; the getEvents wire
-            // contract is 64 lowercase hex, and format enforcement belongs
-            // to the adapter.
-            if !is_64_lowercase_hex(raw) {
-                return Err(AuditError::invalid_identifier(
-                    "transaction hash",
-                    "must be 64 lowercase hex chars on the getEvents wire",
-                ));
-            }
             let hash = TransactionHash::new(raw)
                 .map_err(|_| AuditError::invalid_identifier("transaction hash", raw.clone()))?;
             Some(TransactionReference::new(network, hash))
@@ -167,15 +165,6 @@ pub fn parse_ledger_close_time(raw: &str) -> AuditResult<Timestamp> {
 
 fn digits(bytes: &[u8]) -> bool {
     bytes.iter().all(|b| b.is_ascii_digit())
-}
-
-/// Whether `value` is 64 lowercase hex chars — the `getEvents` `txHash`
-/// wire shape.
-fn is_64_lowercase_hex(value: &str) -> bool {
-    value.len() == 64
-        && value
-            .chars()
-            .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase())
 }
 
 /// Days since the Unix epoch for a civil date (Howard Hinnant's
