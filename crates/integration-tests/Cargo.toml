@@ -22,6 +22,8 @@ safeguard-audit-memory-store = { path = "../memory-store" }
 safeguard-audit-normalizer = { path = "../event-normalizer" }
 safeguard-audit-privacy = { path = "../privacy" }
 safeguard-audit-reporting = { path = "../reporting" }
+safeguard-audit-rpc = { path = "../rpc" }
+safeguard-audit-soroban = { path = "../soroban" }
 safeguard-audit-storage = { path = "../storage" }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

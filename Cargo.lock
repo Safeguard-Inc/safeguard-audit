@@ -167,6 +167,8 @@ dependencies = [
  "safeguard-audit-normalizer",
  "safeguard-audit-privacy",
  "safeguard-audit-reporting",
+ "safeguard-audit-rpc",
+ "safeguard-audit-soroban",
  "safeguard-audit-storage",
  "serde",
  "serde_json",

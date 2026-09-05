@@ -106,28 +106,34 @@ impl EventsRpc for MockEventsClient {
 /// Adapts any [`EventsRpc`] client to the [`SorobanEventFeed`] door the
 /// ingestion source consumes.
 ///
-/// `start_ledger` is where a fresh pass begins (sent only when no
-/// cursor is being resumed from, exactly as the RPC documentation
-/// prescribes). The adapter holds a `&mut` borrow of the client, so an
-/// ingestion loop owns the client and passes it through.
-pub struct EventsRpcFeed<'a, C> {
-    client: &'a mut C,
+/// The feed *owns* its client: an operator builds a feed around a real
+/// transport and hands it to the [`SorobanEventSource`], which is the
+/// only consumer. `start_ledger` is where a fresh pass begins (sent
+/// only when no cursor is being resumed from, exactly as the RPC
+/// documentation prescribes).
+pub struct EventsRpcFeed<C> {
+    client: C,
     start_ledger: Option<u32>,
 }
 
-impl<'a, C: EventsRpc> EventsRpcFeed<'a, C> {
+impl<C: EventsRpc> EventsRpcFeed<C> {
     /// Builds the feed over `client`, beginning fresh passes at
     /// `start_ledger` (or at the node's earliest retained ledger when
     /// `None`).
-    pub fn new(client: &'a mut C, start_ledger: Option<u32>) -> Self {
+    pub fn new(client: C, start_ledger: Option<u32>) -> Self {
         Self {
             client,
             start_ledger,
         }
     }
+
+    /// The wrapped client (for inspection in tests and tooling).
+    pub fn client(&mut self) -> &mut C {
+        &mut self.client
+    }
 }
 
-impl<C: EventsRpc> SorobanEventFeed for EventsRpcFeed<'_, C> {
+impl<C: EventsRpc> SorobanEventFeed for EventsRpcFeed<C> {
     fn fetch_page(
         &mut self,
         after: Option<&str>,
@@ -226,8 +232,8 @@ mod tests {
 
     #[test]
     fn the_feed_bridge_resumes_and_starts_fresh() {
-        let mut client = MockEventsClient::new(events(3));
-        let mut feed = EventsRpcFeed::new(&mut client, Some(100));
+        let client = MockEventsClient::new(events(3));
+        let mut feed = EventsRpcFeed::new(client, Some(100));
 
         // A fresh pass asks for the configured start ledger.
         let page1 = feed.fetch_page(None, 2).unwrap();
@@ -244,7 +250,7 @@ mod tests {
     fn feed_transport_failures_surface_as_fetch_failures() {
         let mut client = MockEventsClient::new(events(1));
         client.fail_next(1);
-        let mut feed = EventsRpcFeed::new(&mut client, Some(100));
+        let mut feed = EventsRpcFeed::new(client, Some(100));
         assert!(matches!(
             feed.fetch_page(None, 10),
             Err(SourceError::FetchFailed(_))

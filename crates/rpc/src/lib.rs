@@ -47,7 +47,7 @@ pub use events::{
     parse_get_events_response, EventFilter, EventTypeFilter, GetEventsParams, GetEventsRequest,
     JsonRpcEnvelope, RpcErrorBody,
 };
-pub use mock::MockEventsClient;
+pub use mock::{EventsRpcFeed, MockEventsClient};
 pub use retry::{fetch_with_retry, RetryPolicy, RpcPolicy};
 
 /// The typed client contract an RPC transport implements.
