@@ -41,10 +41,12 @@
 
 pub mod identity;
 pub mod mapping;
+pub mod registry;
 pub mod source;
 pub mod wire;
 
 pub use identity::event_id;
 pub use mapping::{parse_ledger_close_time, to_normalized, NormalizedParts};
+pub use registry::{ContractLabel, ContractRegistry};
 pub use source::{SorobanEventFeed, SorobanEventSource};
 pub use wire::{SorobanEvent, SorobanEventType, SorobanEventsResult};
