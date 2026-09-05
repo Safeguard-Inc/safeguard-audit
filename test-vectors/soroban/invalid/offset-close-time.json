@@ -1,0 +1,20 @@
+{
+  "network": "testnet",
+  "note": "The close time carries a timezone offset; the getEvents wire reports UTC only, so the strict round-trip validator rejects it during mapping.",
+  "event": {
+    "type": "contract",
+    "ledger": 3727845,
+    "ledgerClosedAt": "2026-07-21T18:01:10+02:00",
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577600-0000000001",
+    "transactionIndex": 5,
+    "operationIndex": 0,
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg=="
+    ],
+    "txHash": "a5c9247b77eb04c0d857934a2e988c408167976c8acbdf3d8acf64c44deb3beb"
+  },
+  "expect": {
+    "ok": false
+  }
+}

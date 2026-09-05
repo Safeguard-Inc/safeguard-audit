@@ -1,0 +1,18 @@
+{
+  "network": "testnet",
+  "note": "A system emission: no contract, no value, no tx hash. Structurally sound and mappable.",
+  "event": {
+    "type": "system",
+    "ledger": 3727845,
+    "ledgerClosedAt": "2026-07-21T18:01:10Z",
+    "id": "0016010972359577600-0000000000",
+    "transactionIndex": 0,
+    "operationIndex": 0,
+    "topic": [
+      "AAAADgAAAAhzb21ldGhpbmc="
+    ]
+  },
+  "expect": {
+    "ok": true
+  }
+}

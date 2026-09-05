@@ -1,0 +1,16 @@
+{
+  "network": "testnet",
+  "note": "The id is TOID-shaped but its 10-digit index (9999999999) exceeds the supported u32 range; validate rejects it.",
+  "event": {
+    "type": "contract",
+    "ledger": 3727845,
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577600-9999999999",
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg=="
+    ]
+  },
+  "expect": {
+    "ok": false
+  }
+}

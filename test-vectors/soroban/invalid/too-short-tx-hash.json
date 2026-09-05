@@ -1,0 +1,17 @@
+{
+  "network": "testnet",
+  "note": "The txHash must be exactly 64 lowercase hex chars; a short hash fails validate.",
+  "event": {
+    "type": "contract",
+    "ledger": 3727845,
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577600-0000000001",
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg=="
+    ],
+    "txHash": "a5c9247b77eb04c0d857934a2e988c408167976c8acbdf3d8acf64c44deb3be"
+  },
+  "expect": {
+    "ok": false
+  }
+}

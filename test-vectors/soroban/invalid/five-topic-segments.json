@@ -1,0 +1,20 @@
+{
+  "network": "testnet",
+  "note": "The wire shape allows at most 4 topic segments; five fails validate.",
+  "event": {
+    "type": "contract",
+    "ledger": 3727845,
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577600-0000000001",
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg==",
+      "AAAADwAAAAhzZWNvbmQ=",
+      "AAAADwAAAAN0aGlyZA==",
+      "AAAADwAAAApmb3VydGg=",
+      "AAAADwAAAApmaWZ0aA=="
+    ]
+  },
+  "expect": {
+    "ok": false
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "network": "testnet",
+  "note": "A contract event with the optional metadata (close time, tx hash, operation index) absent. Absence is never an error.",
+  "event": {
+    "type": "contract",
+    "ledger": 423,
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577603-0000000002",
+    "transactionIndex": 1,
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg=="
+    ]
+  },
+  "expect": {
+    "ok": true
+  }
+}

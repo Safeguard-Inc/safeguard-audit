@@ -1,0 +1,16 @@
+{
+  "network": "testnet",
+  "note": "The ledger sequence is not positive; validate rejects it and LedgerReference would too.",
+  "event": {
+    "type": "contract",
+    "ledger": 0,
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577600-0000000001",
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg=="
+    ]
+  },
+  "expect": {
+    "ok": false
+  }
+}

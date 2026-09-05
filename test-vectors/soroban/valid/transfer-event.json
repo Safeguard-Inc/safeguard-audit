@@ -1,0 +1,25 @@
+{
+  "network": "testnet",
+  "note": "The Stellar documentation's own getEvents example event, verbatim.",
+  "event": {
+    "type": "contract",
+    "ledger": 3727845,
+    "ledgerClosedAt": "2026-07-21T18:01:10Z",
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577600-0000000001",
+    "transactionIndex": 5,
+    "operationIndex": 0,
+    "inSuccessfulContractCall": true,
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg==",
+      "AAAAEgAAAAAAAAAAjnWZyariB+Ah9OPGy5WJe1t2Ks3gKsKGYsy7vmpJRIY=",
+      "AAAAEgAAAAGu/2GlTlA4D83fxvERV0mWvvsyBPo+xfk3Guav6IgNZQ==",
+      "AAAADgAAAAZuYXRpdmUAAA=="
+    ],
+    "value": "AAAACgAAAAAAAAAAAAAAALLQXgA=",
+    "txHash": "a5c9247b77eb04c0d857934a2e988c408167976c8acbdf3d8acf64c44deb3beb"
+  },
+  "expect": {
+    "ok": true
+  }
+}

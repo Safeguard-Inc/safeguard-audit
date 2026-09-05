@@ -1,0 +1,17 @@
+{
+  "network": "testnet",
+  "note": "The txHash must be 64 lowercase hex on the getEvents wire; uppercase fails validate.",
+  "event": {
+    "type": "contract",
+    "ledger": 3727845,
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "0016010972359577600-0000000001",
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg=="
+    ],
+    "txHash": "A5C9247B77EB04C0D857934A2E988C408167976C8ACBDF3D8ACF64C44DEB3BEB"
+  },
+  "expect": {
+    "ok": false
+  }
+}

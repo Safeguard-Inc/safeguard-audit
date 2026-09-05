@@ -1,0 +1,16 @@
+{
+  "network": "testnet",
+  "note": "The event id is not a TOID (19-digit + hyphen + 10-digit index); validate rejects it.",
+  "event": {
+    "type": "contract",
+    "ledger": 3727845,
+    "contractId": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "id": "not-a-toid",
+    "topic": [
+      "AAAADwAAAAh0cmFuc2Zlcg=="
+    ]
+  },
+  "expect": {
+    "ok": false
+  }
+}
