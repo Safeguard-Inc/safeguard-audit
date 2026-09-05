@@ -1,0 +1,18 @@
+[package]
+name = "safeguard-audit-rpc"
+description = "Stellar Soroban RPC protocol modeling for the Safeguard audit layer: the JSON-RPC getEvents request and response envelopes verified against the Stellar API reference, the client contract an HTTP transport implements, retry/timeout policy, and a clearly-labeled test mock — with no network stack of its own."
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[dependencies]
+safeguard-audit-core = { path = "../audit-core" }
+safeguard-audit-soroban = { path = "../soroban" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
