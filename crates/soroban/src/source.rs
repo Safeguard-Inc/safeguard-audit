@@ -4,8 +4,17 @@
 //! so Soroban pages can feed the normalizer exactly like any other
 //! source. A caller supplies a [`SorobanEventFeed`] — the narrow fetch
 //! operation, backed by an RPC client in production or a synthetic list
-//! in tests — and the source turns each wire event into a
-//! [`RawEventItem`] whose *position is the event's own TOID `id`*.
+//! in tests — and the source turns each *admitted* wire event into a
+//! [`RawEventItem`] whose position is the event's own TOID `id`.
+//!
+//! Admission is the operator registry's decision: the source is built
+//! for one network and consults its [`ContractRegistry`] for every
+//! contract event. A recognized contract's event becomes a raw item
+//! whose scheme label is that contract's operator-chosen label (the
+//! provenance breadcrumb a parser registry can later bind); system
+//! events and events from unregistered contracts are skipped — never
+//! silently admitted — and the skip is counted so a caller can observe
+//! and log the drop instead of assuming the page was fully consumed.
 //!
 //! Positions are event ids, not arrival times, and the id is the same
 //! dedup key the rest of the pipeline uses. The Stellar RPC page cursor
@@ -20,8 +29,9 @@
 //! rejected as invalid rather than silently mis-ordered.
 
 use safeguard_audit_core::source::RawEventItem;
-use safeguard_audit_core::{EventSource, SourceError, SourcePage, SourceResult};
+use safeguard_audit_core::{EventSource, NetworkId, SourceError, SourcePage, SourceResult};
 
+use crate::registry::ContractRegistry;
 use crate::wire::{is_toid_id, SorobanEventsResult};
 
 /// The maximum page the source will ask a feed for, mirroring the RPC's
@@ -45,31 +55,55 @@ pub trait SorobanEventFeed {
     ) -> SourceResult<SorobanEventsResult>;
 }
 
-/// An [`EventSource`] over a [`SorobanEventFeed`].
+/// An [`EventSource`] over a [`SorobanEventFeed`], gated by the operator
+/// contract registry.
 ///
 /// `name` is the stable source label used in checkpoints and provenance
-/// (e.g. `soroban-testnet`); `scheme` labels the payloads so the
-/// normalizer can pick a parser once that parser exists.
+/// (e.g. `soroban-testnet`); `network` scopes registry admission and the
+/// downstream identity, since the same contract address on testnet and
+/// mainnet is a different contract.
 pub struct SorobanEventSource<F> {
     name: String,
-    scheme: String,
+    network: NetworkId,
+    registry: ContractRegistry,
     feed: F,
+    /// Contract and system events skipped since construction, because
+    /// they came from contracts the registry does not admit (or carried
+    /// no contract at all). Read this to observe silent drops; the value
+    /// is cumulative so a caller can take deltas between fetches.
+    skipped: u64,
 }
 
 impl<F: SorobanEventFeed> SorobanEventSource<F> {
-    /// Builds a source with a stable name, a payload scheme label, and
-    /// the backing feed.
-    pub fn new(name: impl Into<String>, scheme: impl Into<String>, feed: F) -> Self {
+    /// Builds a source with a stable name, the network it audits, the
+    /// operator registry admitting contracts on that network, and the
+    /// backing feed.
+    pub fn new(
+        name: impl Into<String>,
+        network: NetworkId,
+        registry: ContractRegistry,
+        feed: F,
+    ) -> Self {
         Self {
             name: name.into(),
-            scheme: scheme.into(),
+            network,
+            registry,
             feed,
+            skipped: 0,
         }
     }
 
-    /// The scheme label stamped on every raw item this source yields.
-    pub fn scheme(&self) -> &str {
-        &self.scheme
+    /// The network this source audits (registry admission and downstream
+    /// identity are scoped to it).
+    pub fn network(&self) -> &NetworkId {
+        &self.network
+    }
+
+    /// Events skipped since construction: system events and events from
+    /// contracts the registry does not admit. Cumulative, so take a
+    /// delta across fetches to learn what one page dropped.
+    pub fn skipped(&self) -> u64 {
+        self.skipped
     }
 }
 
@@ -94,11 +128,11 @@ impl<F: SorobanEventFeed> EventSource for SorobanEventSource<F> {
 
         let page = self.feed.fetch_page(after, limit)?;
 
-        // Turn wire events into raw items whose position is the event id,
-        // refusing anything at or before the resume point and anything
-        // that would break the strict ordering of the page.
+        // Turn admitted wire events into raw items whose position is the
+        // event id. Everything else is counted, never served.
         let mut items = Vec::with_capacity(page.events.len());
         let mut previous: Option<&str> = None;
+        let mut skipped = 0u64;
         for event in &page.events {
             // Wire-level structural coherence is checked here, at the
             // door, via the single validate() entry point: a malformed
@@ -121,11 +155,26 @@ impl<F: SorobanEventFeed> EventSource for SorobanEventSource<F> {
                 }
             }
             previous = Some(id);
+
+            // Admission: only contract events from registered contracts
+            // enter the pipeline. An event with no contract id (system
+            // emissions, or a contract event the node did not name) and
+            // an event from an unregistered contract are both skipped —
+            // observably, not silently.
+            let Some(contract) = event.contract_id.as_deref() else {
+                skipped += 1;
+                continue;
+            };
+            let Some(label) = self.registry.label(&self.network, contract) else {
+                skipped += 1;
+                continue;
+            };
             let payload = serde_json::to_string(event).map_err(|e| {
                 SourceError::InvalidItem(format!("event {id} does not serialize: {e}"))
             })?;
-            items.push(RawEventItem::new(&self.scheme, payload, id)?);
+            items.push(RawEventItem::new(label.as_str(), payload, id)?);
         }
+        self.skipped += skipped;
 
         Ok(SourcePage::new(items, page.cursor.clone()))
     }
@@ -134,7 +183,32 @@ impl<F: SorobanEventFeed> EventSource for SorobanEventSource<F> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::registry::ContractLabel;
     use crate::wire::{SorobanEvent, SorobanEventType};
+    use safeguard_audit_core::ContractId;
+
+    /// The emitting contract used by the synthetic events below, from the
+    /// Stellar documentation's own getEvents example.
+    const CONTRACT: &str = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+    const OTHER_CONTRACT: &str = "CA3V4K3H5YQZ4P7VJ6U4VZC2TG7LB5WJH4Y2UQ5W2GQ4R2XU5V3T2HG";
+
+    fn contract(value: &str) -> ContractId {
+        ContractId::new(value).unwrap()
+    }
+
+    fn testnet() -> NetworkId {
+        NetworkId::new(NetworkId::TESTNET).unwrap()
+    }
+
+    fn registry() -> ContractRegistry {
+        let mut registry = ContractRegistry::new();
+        registry.register(
+            testnet(),
+            contract(CONTRACT),
+            ContractLabel::new("safeguard-hooks-testnet").unwrap(),
+        );
+        registry
+    }
 
     /// A synthetic feed over a fixed list of events. Test-only: it is
     /// not an RPC client and must never be treated as one.
@@ -198,7 +272,7 @@ mod tests {
             event_type: SorobanEventType::Contract,
             ledger: 421,
             ledger_closed_at: None,
-            contract_id: None,
+            contract_id: Some(CONTRACT.to_owned()),
             id: toid(index),
             transaction_index: Some(0),
             operation_index: Some(0),
@@ -210,7 +284,7 @@ mod tests {
     }
 
     fn source(feed: VecFeed) -> SorobanEventSource<VecFeed> {
-        SorobanEventSource::new("soroban-testnet", "soroban-event", feed)
+        SorobanEventSource::new("soroban-testnet", testnet(), registry(), feed)
     }
 
     #[test]
@@ -220,7 +294,8 @@ mod tests {
             sloppy: false,
         });
         assert_eq!(source.source_name(), "soroban-testnet");
-        assert_eq!(source.scheme(), "soroban-event");
+        assert_eq!(source.network(), &testnet());
+        assert_eq!(source.skipped(), 0);
 
         let page1 = source.fetch_after(None, 2).unwrap();
         assert_eq!(page1.items().len(), 2);
@@ -233,19 +308,23 @@ mod tests {
         assert!(!page2.has_more());
         let ids: Vec<&str> = page2.items().iter().map(|i| i.position()).collect();
         assert_eq!(ids, vec![toid(3), toid(4)]);
+        assert_eq!(source.skipped(), 0);
     }
 
     #[test]
-    fn raw_items_carry_the_scheme_and_a_round_trippable_payload() {
+    fn raw_items_carry_the_contract_label_as_scheme() {
         let mut source = source(VecFeed {
             events: vec![event(1)],
             sloppy: false,
         });
         let page = source.fetch_after(None, 10).unwrap();
         let item = &page.items()[0];
-        assert_eq!(item.scheme(), "soroban-event");
+        // The operator-chosen label is the item's scheme: the provenance
+        // breadcrumb a parser registry can later bind to a real parser.
+        assert_eq!(item.scheme(), "safeguard-hooks-testnet");
         let back: SorobanEvent = serde_json::from_str(item.payload()).unwrap();
         assert_eq!(back.id, toid(1));
+        assert_eq!(back.contract_id.as_deref(), Some(CONTRACT));
     }
 
     #[test]
@@ -261,6 +340,59 @@ mod tests {
         let page2 = source.fetch_after(page1.next_position(), 10).unwrap();
         let ids: Vec<&str> = page2.items().iter().map(|i| i.position()).collect();
         assert_eq!(ids, vec![toid(2), toid(3)]);
+    }
+
+    #[test]
+    fn unregistered_contracts_and_system_events_are_skipped_and_counted() {
+        let mut unknown = event(1);
+        unknown.contract_id = Some(OTHER_CONTRACT.to_owned());
+        let mut system = event(2);
+        system.event_type = SorobanEventType::System;
+        system.contract_id = None;
+        let mut source = source(VecFeed {
+            events: vec![unknown, system, event(3)],
+            sloppy: false,
+        });
+
+        let page = source.fetch_after(None, 10).unwrap();
+        // Only the registered contract's event becomes an item.
+        let ids: Vec<&str> = page.items().iter().map(|i| i.position()).collect();
+        assert_eq!(ids, vec![toid(3)]);
+        // The two skipped events are observable, never silent.
+        assert_eq!(source.skipped(), 2);
+    }
+
+    #[test]
+    fn an_empty_registry_admits_nothing_but_never_errors() {
+        let mut source = SorobanEventSource::new(
+            "soroban-testnet",
+            testnet(),
+            ContractRegistry::new(),
+            VecFeed {
+                events: vec![event(1), event(2)],
+                sloppy: false,
+            },
+        );
+        let page = source.fetch_after(None, 10).unwrap();
+        assert!(page.items().is_empty());
+        assert_eq!(source.skipped(), 2);
+    }
+
+    #[test]
+    fn skipped_counts_accumulate_across_fetches() {
+        let mut other = event(1);
+        other.contract_id = Some(OTHER_CONTRACT.to_owned());
+        let mut source = source(VecFeed {
+            events: vec![other, event(2), event(3), event(4)],
+            sloppy: false,
+        });
+        let page1 = source.fetch_after(None, 2).unwrap();
+        // Page 1: event(1) skipped, event(2) admitted.
+        assert_eq!(page1.items().len(), 1);
+        assert_eq!(source.skipped(), 1);
+        let page2 = source.fetch_after(page1.next_position(), 10).unwrap();
+        assert_eq!(page2.items().len(), 2);
+        assert_eq!(source.skipped(), 1);
     }
 
     #[test]
