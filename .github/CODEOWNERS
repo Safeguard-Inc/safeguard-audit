@@ -1,0 +1,7 @@
+# Default code owners for the Safeguard Audit repository.
+#
+# Every pull request touching any path below requires review approval from a
+# listed owner before merge (when branch protection is enabled). Keep the
+# owner list in sync with the maintainers named in README.md / CONTRIBUTING.md.
+
+* @LaPoshBaby
