@@ -118,9 +118,23 @@ fn classify_hooks(config: &NormalizeConfig, raw: &RawHooksEvent) -> NormalizerRe
     event.transaction = Some(placement.transaction);
     event.operation = placement.operation;
 
-    // The token contract the event concerns is always carried.
-    let token = ContractId::new(&raw.token).map_err(|e| classify_error(format!("token: {e}")))?;
-    event.token = Some(TokenReference::for_contract(event.network.clone(), token));
+    // Initialization names the recorded authority, not a token; every other
+    // hooks event names the token it concerns.
+    if raw.hooks_type.has_admin() {
+        let admin = raw
+            .admin
+            .as_ref()
+            .ok_or_else(|| classify_error("recorded admin missing after validation"))?;
+        event.details.insert("admin_account".into(), admin.clone());
+    } else {
+        let token_raw = raw
+            .token
+            .as_ref()
+            .ok_or_else(|| classify_error("token missing after validation"))?;
+        let token =
+            ContractId::new(token_raw).map_err(|e| classify_error(format!("token: {e}")))?;
+        event.token = Some(TokenReference::for_contract(event.network.clone(), token));
+    }
 
     match raw.hooks_type {
         t if t.has_account() => {
@@ -176,6 +190,8 @@ mod tests {
         include_str!("../../../fixtures/events/config-change/observed-hooks-event.json");
     const ENVELOPE_FIXTURE: &str =
         include_str!("../../../fixtures/events/denied-transfer/event.json");
+    const INITIALIZED_FIXTURE: &str =
+        include_str!("../../../fixtures/events/initialized/observed-hooks-event.json");
 
     fn config() -> NormalizeConfig {
         NormalizeConfig::new(
@@ -264,6 +280,22 @@ mod tests {
         assert_eq!(a.event_id, b.event_id);
         // Canonical bytes are identical too — downstream digest stability.
         assert_eq!(a.canonical_bytes().unwrap(), b.canonical_bytes().unwrap());
+    }
+
+    #[test]
+    fn initialized_event_classifies_without_a_token_and_names_the_admin() {
+        let event = classify_fixture(Scheme::HooksStateEvent, INITIALIZED_FIXTURE);
+        assert!(event.validate().is_ok());
+        assert_eq!(event.kind, EventKind::EnforcementInitialized);
+        assert_eq!(event.provenance.origin(), OriginKind::OnChain);
+        assert_eq!(event.provenance.source(), "safeguard-hooks");
+        // No token: initialization concerns the contract, not a bound token.
+        assert!(event.token.is_none());
+        assert!(event.subject.is_none());
+        assert!(event.actor.is_none());
+        // The recorded authority is carried as a short detail value.
+        let admin = event.details.get("admin_account").expect("admin detail");
+        assert!(admin.starts_with('G'));
     }
 
     #[test]

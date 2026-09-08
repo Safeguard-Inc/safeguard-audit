@@ -74,6 +74,9 @@ pub enum EventKind {
     TokenUnbound,
     /// Enforcement configuration changed (on-chain hooks event).
     ConfigurationChanged,
+    /// The enforcement contract was initialized with its authority
+    /// (on-chain hooks event).
+    EnforcementInitialized,
     /// A compliance decision was produced and recorded.
     ComplianceDecision,
     /// A policy version change was observed.
@@ -108,6 +111,7 @@ impl EventKind {
             Self::TokenBound => "token-bound",
             Self::TokenUnbound => "token-unbound",
             Self::ConfigurationChanged => "configuration-changed",
+            Self::EnforcementInitialized => "enforcement-initialized",
             Self::ComplianceDecision => "compliance-decision",
             Self::PolicyVersionChanged => "policy-version-changed",
             Self::AuthorizationChanged => "authorization-changed",
@@ -132,6 +136,7 @@ impl EventKind {
             "token-bound" => Self::TokenBound,
             "token-unbound" => Self::TokenUnbound,
             "configuration-changed" => Self::ConfigurationChanged,
+            "enforcement-initialized" => Self::EnforcementInitialized,
             "compliance-decision" => Self::ComplianceDecision,
             "policy-version-changed" => Self::PolicyVersionChanged,
             "authorization-changed" => Self::AuthorizationChanged,
@@ -157,6 +162,7 @@ impl EventKind {
         Self::TokenBound,
         Self::TokenUnbound,
         Self::ConfigurationChanged,
+        Self::EnforcementInitialized,
         Self::ComplianceDecision,
         Self::PolicyVersionChanged,
         Self::AuthorizationChanged,

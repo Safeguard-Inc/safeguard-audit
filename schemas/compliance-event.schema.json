@@ -1,13 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ComplianceEvent",
-  "description": "The on-chain state-transition event surface emitted by the safeguard-hooks enforcement contract and consumed by the audit indexer. Mirrors the sibling polyrepo's compliance-event contract: only state transitions exist (freeze/unfreeze, bind/unbind, config changes); per-operation approvals are never emitted (spoofable) and denials cannot be emitted (reverts discard events). Events carry addresses and booleans only — never amounts or private financial data.",
+  "description": "The on-chain state-transition event surface emitted by the safeguard-hooks enforcement contract and consumed by the audit indexer. Mirrors the sibling polyrepo's compliance-event contract: only state transitions exist (initialization, freeze/unfreeze, bind/unbind, config changes); per-operation approvals are never emitted (spoofable) and denials cannot be emitted (reverts discard events). Events carry addresses and booleans only — never amounts or private financial data.",
   "type": "object",
-  "required": ["type", "token"],
+  "required": ["type"],
   "properties": {
     "type": {
       "type": "string",
       "enum": [
+        "initialized",
         "account_frozen",
         "account_unfrozen",
         "token_bound",
@@ -15,7 +16,8 @@
         "compliance_config_changed"
       ]
     },
-    "token": { "type": "string", "description": "The token contract address the transition concerns." },
+    "token": { "type": ["string", "null"], "description": "The token contract address the transition concerns (absent/null on initialization events)." },
+    "admin": { "type": ["string", "null"], "description": "The administrative authority recorded at initialization (initialized events only)." },
     "account": { "type": ["string", "null"], "description": "The frozen/unfrozen account (freeze events only)." },
     "policy": { "type": ["string", "null"], "description": "The configured policy address after the change, or null (config events only)." },
     "sac_passthrough": { "type": ["boolean", "null"], "description": "The SAC-passthrough flag after the change (config events only)." },

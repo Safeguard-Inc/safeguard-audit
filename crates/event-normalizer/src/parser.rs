@@ -39,6 +39,8 @@ pub enum HooksType {
     TokenUnbound,
     /// `compliance_config_changed`
     ComplianceConfigChanged,
+    /// `initialized`
+    Initialized,
 }
 
 impl HooksType {
@@ -50,6 +52,7 @@ impl HooksType {
             Self::TokenBound => "token_bound",
             Self::TokenUnbound => "token_unbound",
             Self::ComplianceConfigChanged => "compliance_config_changed",
+            Self::Initialized => "initialized",
         }
     }
 
@@ -61,6 +64,7 @@ impl HooksType {
             "token_bound" => Self::TokenBound,
             "token_unbound" => Self::TokenUnbound,
             "compliance_config_changed" => Self::ComplianceConfigChanged,
+            "initialized" => Self::Initialized,
             _ => return None,
         })
     }
@@ -73,6 +77,7 @@ impl HooksType {
             Self::TokenBound => EventKind::TokenBound,
             Self::TokenUnbound => EventKind::TokenUnbound,
             Self::ComplianceConfigChanged => EventKind::ConfigurationChanged,
+            Self::Initialized => EventKind::EnforcementInitialized,
         }
     }
 
@@ -86,6 +91,12 @@ impl HooksType {
         matches!(self, Self::ComplianceConfigChanged)
     }
 
+    /// Whether this hooks event type records the recorded authority instead
+    /// of a token (initialization carries the admin account).
+    pub fn has_admin(self) -> bool {
+        matches!(self, Self::Initialized)
+    }
+
     /// All supported hooks event types.
     pub const ALL: &'static [HooksType] = &[
         Self::AccountFrozen,
@@ -93,6 +104,7 @@ impl HooksType {
         Self::TokenBound,
         Self::TokenUnbound,
         Self::ComplianceConfigChanged,
+        Self::Initialized,
     ];
 }
 
@@ -111,8 +123,11 @@ impl std::fmt::Display for HooksType {
 pub struct RawHooksEvent {
     /// Which hooks state event this is.
     pub hooks_type: HooksType,
-    /// The token contract address the event concerns.
-    pub token: String,
+    /// The token contract address the event concerns (absent for
+    /// initialization, which names the admin instead).
+    pub token: Option<String>,
+    /// The recorded administrative authority (initialized events only).
+    pub admin: Option<String>,
     /// The subject account (freeze/unfreeze events only).
     pub account: Option<String>,
     /// The configured policy contract (config-change events only).
@@ -176,6 +191,7 @@ const ENVELOPE_FIELDS: &[&str] = &[
 const HOOKS_FIELDS: &[&str] = &[
     "type",
     "token",
+    "admin",
     "account",
     "policy",
     "sac_passthrough",
@@ -207,7 +223,11 @@ fn parse_hooks_state(payload: &str) -> NormalizerResult<RawHooksEvent> {
         }
         _ => return malformed("hooks-state-event", "`type` must be a string"),
     };
-    let token = required_string(&obj, "token", "hooks-state-event")?;
+    // Token is optional at the decode stage: an initialized event names the
+    // recorded admin instead of a token. The validator enforces the exact
+    // per-type field rules afterwards.
+    let token = optional_string(&obj, "token", "hooks-state-event")?;
+    let admin = optional_string(&obj, "admin", "hooks-state-event")?;
     let account = optional_string(&obj, "account", "hooks-state-event")?;
     let policy = optional_string(&obj, "policy", "hooks-state-event")?;
     let sac_passthrough = match obj.get("sac_passthrough") {
@@ -282,6 +302,7 @@ fn parse_hooks_state(payload: &str) -> NormalizerResult<RawHooksEvent> {
     Ok(RawHooksEvent {
         hooks_type,
         token,
+        admin,
         account,
         policy,
         sac_passthrough,
@@ -384,6 +405,7 @@ fn malformed<T>(scheme: &'static str, detail: &str) -> NormalizerResult<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::validator;
     use safeguard_audit_core::OriginKind;
 
     /// The committed fixture for a frozen-account hooks event.
@@ -398,6 +420,9 @@ mod tests {
     /// The committed fixture for an already-normalized envelope.
     const ENVELOPE_FIXTURE: &str =
         include_str!("../../../fixtures/events/denied-transfer/event.json");
+    /// The committed fixture for a hooks initialization event.
+    const INITIALIZED_FIXTURE: &str =
+        include_str!("../../../fixtures/events/initialized/observed-hooks-event.json");
 
     #[test]
     fn every_hooks_type_round_trips_its_wire_string() {
@@ -427,6 +452,10 @@ mod tests {
             HooksType::ComplianceConfigChanged.to_event_kind(),
             EventKind::ConfigurationChanged
         );
+        assert_eq!(
+            HooksType::Initialized.to_event_kind(),
+            EventKind::EnforcementInitialized
+        );
     }
     #[test]
     fn frozen_fixture_decodes_to_a_typed_raw_form() {
@@ -435,7 +464,7 @@ mod tests {
             panic!("expected a hooks-state decode");
         };
         assert_eq!(raw.hooks_type, HooksType::AccountFrozen);
-        assert!(raw.token.starts_with('C'));
+        assert!(raw.token.as_deref().unwrap().starts_with('C'));
         assert!(raw.account.as_deref().unwrap().starts_with('G'));
         assert_eq!(raw.ledger, 423);
         assert_eq!(raw.close_time, 1_700_000_400);
@@ -531,15 +560,22 @@ mod tests {
     }
 
     #[test]
-    fn missing_required_fields_are_rejected() {
+    fn structurally_valid_but_type_irrelevant_fields_decode_then_fail_validation() {
+        // The decoder checks structure only; per-type field presence (a
+        // freeze event naming its token) is the validator's job, so a
+        // payload that is well-formed JSON but incomplete for its type
+        // decodes cleanly here and is rejected downstream.
         let missing_token = r#"{
             "type": "account_frozen", "ledger": 1, "close_time": 2,
             "transaction_hash": "ab", "operation_index": 0, "event_index": 0
         }"#;
-        assert!(matches!(
-            parse(Scheme::HooksStateEvent, missing_token),
-            Err(NormalizerError::MalformedPayload { .. })
-        ));
+        let parsed = parse(Scheme::HooksStateEvent, missing_token);
+        assert!(parsed.is_ok());
+        let ParsedEvent::HooksState(raw) = parsed.unwrap() else {
+            panic!("expected a hooks-state decode");
+        };
+        assert!(raw.token.is_none());
+        assert!(validator::validate(&ParsedEvent::HooksState(raw)).is_err());
     }
 
     #[test]
@@ -563,6 +599,21 @@ mod tests {
             parse(Scheme::HooksStateEvent, float_index),
             Err(NormalizerError::MalformedPayload { .. })
         ));
+    }
+
+    #[test]
+    fn initialized_fixture_decodes_with_an_admin_instead_of_a_token() {
+        let parsed = parse(Scheme::HooksStateEvent, INITIALIZED_FIXTURE).unwrap();
+        let ParsedEvent::HooksState(raw) = parsed else {
+            panic!("expected a hooks-state decode");
+        };
+        assert_eq!(raw.hooks_type, HooksType::Initialized);
+        assert_eq!(raw.token, None);
+        assert!(raw.admin.as_deref().unwrap().starts_with('G'));
+        assert!(raw.account.is_none());
+        assert!(raw.policy.is_none());
+        assert!(raw.sac_passthrough.is_none());
+        assert_eq!(raw.ledger, 210);
     }
 
     #[test]

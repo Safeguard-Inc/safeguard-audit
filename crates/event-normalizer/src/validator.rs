@@ -55,11 +55,29 @@ fn validate_hooks_state(raw: &crate::parser::RawHooksEvent) -> NormalizerResult<
     // Type-dependent field presence must be exact: never silently ignore
     // an extra field, never tolerate a missing one.
     match raw.hooks_type {
+        t if t.has_admin() => {
+            // Initialization names the recorded admin, never a token.
+            if raw.admin.is_none() {
+                return invalid_hooks("admin: required for initialized events");
+            }
+            if raw.token.is_some()
+                || raw.account.is_some()
+                || raw.policy.is_some()
+                || raw.sac_passthrough.is_some()
+            {
+                return invalid_hooks(
+                    "token: initialized events must not carry token, account, or policy fields",
+                );
+            }
+        }
         t if t.has_account() => {
             if raw.account.is_none() {
                 return invalid_hooks("account: required for freeze-state events");
             }
-            if raw.policy.is_some() || raw.sac_passthrough.is_some() {
+            if raw.token.is_none() {
+                return invalid_hooks("token: required for freeze-state events");
+            }
+            if raw.policy.is_some() || raw.sac_passthrough.is_some() || raw.admin.is_some() {
                 return invalid_hooks(
                     "policy: freeze-state events must not carry policy configuration",
                 );
@@ -72,15 +90,25 @@ fn validate_hooks_state(raw: &crate::parser::RawHooksEvent) -> NormalizerResult<
             if raw.sac_passthrough.is_none() {
                 return invalid_hooks("sac_passthrough: required for config-change events");
             }
-            if raw.account.is_some() {
+            if raw.token.is_none() {
+                return invalid_hooks("token: required for config-change events");
+            }
+            if raw.account.is_some() || raw.admin.is_some() {
                 return invalid_hooks(
                     "account: config-change events must not carry a subject account",
                 );
             }
         }
         _ => {
-            // bind/unbind: no account, no policy configuration.
-            if raw.account.is_some() || raw.policy.is_some() || raw.sac_passthrough.is_some() {
+            // bind/unbind: token required, no account, no policy config.
+            if raw.token.is_none() {
+                return invalid_hooks("token: required for bind/unbind events");
+            }
+            if raw.account.is_some()
+                || raw.policy.is_some()
+                || raw.sac_passthrough.is_some()
+                || raw.admin.is_some()
+            {
                 return invalid_hooks(
                     "account: bind/unbind events must not carry account or policy fields",
                 );
@@ -89,7 +117,12 @@ fn validate_hooks_state(raw: &crate::parser::RawHooksEvent) -> NormalizerResult<
     }
 
     // Identifier shapes must survive the same builders used downstream.
-    check_hooks_value(|| ContractId::new(&raw.token).map(|_| ()), "token")?;
+    if let Some(token) = &raw.token {
+        check_hooks_value(|| ContractId::new(token).map(|_| ()), "token")?;
+    }
+    if let Some(admin) = &raw.admin {
+        check_hooks_value(|| AccountId::new(admin).map(|_| ()), "admin")?;
+    }
     if let Some(account) = &raw.account {
         check_hooks_value(|| AccountId::new(account).map(|_| ()), "account")?;
     }
@@ -357,6 +390,8 @@ mod tests {
         include_str!("../../../fixtures/events/config-change/observed-hooks-event.json");
     const ENVELOPE_FIXTURE: &str =
         include_str!("../../../fixtures/events/denied-transfer/event.json");
+    const INITIALIZED_FIXTURE: &str =
+        include_str!("../../../fixtures/events/initialized/observed-hooks-event.json");
 
     fn validate_str(scheme: Scheme, payload: &str) -> NormalizerResult<()> {
         let parsed = parse(scheme, payload)?;
@@ -378,6 +413,36 @@ mod tests {
         assert!(validate_str(Scheme::HooksStateEvent, FROZEN_FIXTURE).is_ok());
         assert!(validate_str(Scheme::HooksStateEvent, BOUND_FIXTURE).is_ok());
         assert!(validate_str(Scheme::HooksStateEvent, CONFIG_FIXTURE).is_ok());
+        assert!(validate_str(Scheme::HooksStateEvent, INITIALIZED_FIXTURE).is_ok());
+    }
+
+    #[test]
+    fn initialized_without_admin_or_with_a_token_is_invalid() {
+        let no_admin = r#"{
+            "type": "initialized",
+            "ledger": 410, "close_time": 1700000000,
+            "transaction_hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+            "operation_index": 0, "event_index": 0
+        }"#;
+        let parsed = parse(Scheme::HooksStateEvent, no_admin).unwrap();
+        assert!(matches!(
+            validate(&parsed),
+            Err(NormalizerError::ValidationFailed { detail, .. })
+                if detail.contains("admin")
+        ));
+
+        // An initialized event must not carry a token (initialization
+        // concerns the contract itself, not a bound token).
+        let with_token = r#"{
+            "type": "initialized",
+            "admin": "GADMINACCOUNTDEMO00000000000000000000000000000000000000000000",
+            "token": "CCONFIDENTIALTOKENDEMO000000000000000000000000000000",
+            "ledger": 410, "close_time": 1700000000,
+            "transaction_hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+            "operation_index": 0, "event_index": 0
+        }"#;
+        let parsed = parse(Scheme::HooksStateEvent, with_token).unwrap();
+        assert!(validate(&parsed).is_err());
     }
 
     #[test]

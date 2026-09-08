@@ -44,6 +44,7 @@ INSTANCES = {
         "fixtures/records/denied-transfer-record.json",
     ],
     "compliance-event.schema.json": [
+        "fixtures/events/initialized/observed-hooks-event.json",
         "fixtures/events/frozen-account/observed-hooks-event.json",
         "fixtures/events/bound-token/observed-hooks-event.json",
         "fixtures/events/config-change/observed-hooks-event.json",

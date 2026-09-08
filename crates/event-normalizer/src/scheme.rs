@@ -13,9 +13,10 @@
 //! attribute, not every feed the system might one day attach:
 //!
 //! * `hooks-state-event` — the raw on-chain state events `safeguard-hooks`
-//!   emits (`account_frozen`, `account_unfrozen`, `token_bound`,
-//!   `token_unbound`, `compliance_config_changed`). Observed events; the
-//!   parser reconstructs their on-chain placement from the payload.
+//!   emits (`initialized`, `account_frozen`, `account_unfrozen`,
+//!   `token_bound`, `token_unbound`, `compliance_config_changed`). Observed
+//!   events; the parser reconstructs their on-chain placement from the
+//!   payload.
 //! * `audit-envelope` — an already-normalized [`AuditEvent`] envelope.
 //!   Re-ingesting envelopes (backfill, cross-store transfer, replay
 //!   reconstruction) must round-trip the same canonical form, so this
