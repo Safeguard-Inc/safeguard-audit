@@ -11,5 +11,5 @@ categories.workspace = true
 publish = false
 
 [dependencies]
-safeguard-audit-core = { path = "../audit-core" }
-safeguard-audit-storage = { path = "../storage" }
+safeguard-audit-core = { path = "../audit-core", version = "0.1.0" }
+safeguard-audit-storage = { path = "../storage", version = "0.1.0" }

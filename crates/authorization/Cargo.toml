@@ -11,11 +11,11 @@ categories.workspace = true
 publish = false
 
 [dependencies]
-safeguard-audit-core = { path = "../audit-core" }
-safeguard-audit-events = { path = "../audit-events" }
-safeguard-audit-storage = { path = "../storage" }
+safeguard-audit-core = { path = "../audit-core", version = "0.1.0" }
+safeguard-audit-events = { path = "../audit-events", version = "0.1.0" }
+safeguard-audit-storage = { path = "../storage", version = "0.1.0" }
 serde.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-safeguard-audit-memory-store = { path = "../memory-store" }
+safeguard-audit-memory-store = { path = "../memory-store", version = "0.1.0" }

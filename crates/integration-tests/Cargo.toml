@@ -11,19 +11,19 @@ categories.workspace = true
 publish = false
 
 [dependencies]
-safeguard-audit-authorization = { path = "../authorization" }
-safeguard-audit-core = { path = "../audit-core" }
-safeguard-audit-events = { path = "../audit-events" }
-safeguard-audit-evidence = { path = "../evidence" }
-safeguard-audit-integrity = { path = "../integrity" }
-safeguard-audit-indexer = { path = "../event-indexer" }
-safeguard-audit-investigation = { path = "../investigation" }
-safeguard-audit-memory-store = { path = "../memory-store" }
-safeguard-audit-normalizer = { path = "../event-normalizer" }
-safeguard-audit-privacy = { path = "../privacy" }
-safeguard-audit-reporting = { path = "../reporting" }
-safeguard-audit-rpc = { path = "../rpc" }
-safeguard-audit-soroban = { path = "../soroban" }
-safeguard-audit-storage = { path = "../storage" }
+safeguard-audit-authorization = { path = "../authorization", version = "0.1.0" }
+safeguard-audit-core = { path = "../audit-core", version = "0.1.0" }
+safeguard-audit-events = { path = "../audit-events", version = "0.1.0" }
+safeguard-audit-evidence = { path = "../evidence", version = "0.1.0" }
+safeguard-audit-integrity = { path = "../integrity", version = "0.1.0" }
+safeguard-audit-indexer = { path = "../event-indexer", version = "0.1.0" }
+safeguard-audit-investigation = { path = "../investigation", version = "0.1.0" }
+safeguard-audit-memory-store = { path = "../memory-store", version = "0.1.0" }
+safeguard-audit-normalizer = { path = "../event-normalizer", version = "0.1.0" }
+safeguard-audit-privacy = { path = "../privacy", version = "0.1.0" }
+safeguard-audit-reporting = { path = "../reporting", version = "0.1.0" }
+safeguard-audit-rpc = { path = "../rpc", version = "0.1.0" }
+safeguard-audit-soroban = { path = "../soroban", version = "0.1.0" }
+safeguard-audit-storage = { path = "../storage", version = "0.1.0" }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
