@@ -12,7 +12,7 @@ The provider-neutral vocabulary, persistence contract, and wire contracts
 of the audit layer:
 
 - **Workspace bootstrap** — Cargo workspace, toolchain pin, lint defaults,
-  MIT license.
+  Apache-2.0 license.
 - **`safeguard-audit-core`** — the domain model: structured error
   taxonomy; deterministic identifiers (`rec_`, `evt_`, `case_`, ...);
   UTC timestamps with a `Clock` abstraction and RFC 3339 rendering;
