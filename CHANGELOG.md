@@ -6,6 +6,14 @@ series of tested commits.
 
 ## [Unreleased]
 
+### Cross-repo event surface sync
+
+- **`initialized` event ingestion** — the normalizer now decodes,
+  validates, and classifies the hooks `Initialized` event (recorded
+  authority at contract setup) end to end, adding an
+  `EnforcementInitialized` kind, schema support, and fixture coverage so
+  the genesis authority record is no longer dropped from the audit trail.
+
 ### Repository hardening
 
 - **Cross-repo protocol references** — new `interfaces/` directory pinning
