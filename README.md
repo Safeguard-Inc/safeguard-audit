@@ -110,7 +110,7 @@ docs/                Architecture, model, and operations documentation
 consolidation is recorded in `docs/architecture.md` — the same
 interfaces-as-cross-repo-protocol discipline the sibling repos follow.
 
-## Status: Phases 1-6 complete
+## Status: Phases 1-9 complete
 
 Implemented, tested, and pushed to `main`:
 
@@ -159,7 +159,22 @@ Implemented, tested, and pushed to `main`:
   scenarios, query-mapping vector corpus, real generated fixtures, the
   `generate-report` example.
 
-Phases 7+ are defined in `docs/architecture.md`.
+- **Phase 7 — Privacy.** `privacy` crate: field-level classification
+  enforcement, redaction, export filtering, and the `DecryptionProvider`
+  boundary — protected data is never persisted or logged by default.
+- **Phase 8 — Soroban RPC.** `rpc` crate: the verified `getEvents` request
+  and response shapes against the Stellar API reference, typed envelopes,
+  cursor/range validation, and bounded retry policy — pinned by the wire
+  fixture corpus in `fixtures/soroban` and `test-vectors/soroban`.
+- **Phase 9 — Soroban adapter.** `soroban` crate: the `SorobanEventSource`
+  (checkpointed, idempotent event ingestion over a `SorobanEventFeed`),
+  the operator contract registry gating admission, wire-event validation,
+  and payload-to-audit-kind mapping — with end-to-end adapter tests over
+  committed wire fixtures, and the integration contracts pinned in
+  `docs/rpc.md`, `docs/soroban.md`, and `interfaces/`.
+
+Phases 10+ (simulator bridge, optional on-chain registry, hardening) are
+defined in `docs/architecture.md`.
 
 ## Development
 
