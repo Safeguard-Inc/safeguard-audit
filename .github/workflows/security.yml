@@ -22,7 +22,7 @@ jobs:
         run: cargo install --locked cargo-audit
 
       - name: Audit dependencies
-        run: cargo audit
+        run: cargo audit --file Cargo.lock
 
   deny:
     name: advisories · licenses · sources (cargo-deny)
