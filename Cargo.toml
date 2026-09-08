@@ -20,6 +20,8 @@ members = [
 
 [workspace.package]
 version = "0.1.0"
+description = "Verification layer for the Safeguard compliance stack on Stellar Confidential Tokens: append-only audit records, chained integrity digests, investigation, evidence, and reproducible reports."
+documentation = "https://docs.rs/safeguard-audit"
 authors = ["Safeguard Inc."]
 edition = "2021"
 license = "Apache-2.0"
