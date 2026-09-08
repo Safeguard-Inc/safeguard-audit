@@ -1,0 +1,26 @@
+name: Feature
+description: A new capability for the audit/verification stack.
+title: "feature: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What the audit layer cannot answer or do today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The capability, the crate(s) it lands in, and how it preserves the integrity/privacy/authorization boundaries.
+    validations:
+      required: true
+  - type: textarea
+    id: surface
+    attributes:
+      label: Surface
+      description: Which contract changes (schemas, event kinds, interface) it implies, if any.
+    validations:
+      required: false

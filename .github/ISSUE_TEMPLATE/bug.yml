@@ -1,0 +1,38 @@
+name: Bug
+description: A defect in the audit/verification stack.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What the audit layer should do — the invariant, record, or pipeline step involved.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead, with the exact crate, entry point, and error.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal input (event, fixture, or test-vector) that triggers it, or the failing test name.
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      options:
+        - Integrity (records can be altered undetected)
+        - Privacy (protected data exposure)
+        - Authorization (access control bypass)
+        - Availability (pipeline cannot progress)
+        - Correctness (wrong record/report output)
+    validations:
+      required: true
