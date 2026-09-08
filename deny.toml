@@ -1,0 +1,56 @@
+# cargo-deny configuration (https://embarkstudios.github.io/cargo-deny/).
+# Enforced by .github/workflows/security.yml on every pull request and on a
+# weekly schedule against the default branch.
+
+[advisories]
+# Known security advisories are always a hard failure, including transitive
+# dependencies. Unmaintained is scoped to the workspace crates we author:
+# many transitive dependencies of the Rust ecosystem are effectively frozen
+# upstream and would otherwise fail the gate without action we can take.
+unmaintained = "workspace"
+# Unsoundness reports are always a hard failure for every crate in the graph.
+unsound = "all"
+# Yanked crates are denied unless the lockfile requires them.
+yanked = "deny"
+
+[licenses]
+# Safeguard is Apache-2.0; the workspace must stay permissive. The allow
+# list is the single source of truth (cargo-deny >= 0.20 removed the
+# copyleft/unlicensed blanket policies): a license expression that is not
+# in `allow` and has no per-crate `exceptions` entry is a hard failure, so
+# GPL/AGPL/LGPL-family licenses are rejected by construction and the
+# project stays embeddable in closed-source deployments.
+allow = [
+    "Apache-2.0",
+    # wasmparser-nostd (soroban-wasmi) is Apache-2.0 WITH LLVM-exception, an
+    # OSI/FSF-approved Apache variant with a permissive LLVM exception.
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "Zlib",
+    "Unicode-3.0",
+]
+confidence-threshold = 0.8
+# Check dev- and build-dependencies too, not just runtime ones.
+include-dev = true
+include-build = true
+
+# Per-crate license exceptions, reviewed by hand. Keep this list as small
+# as possible.
+# [[licenses.exceptions]]
+# name = "example-crate"
+# version = "*"
+# allow = ["LicenseRef-..."]
+
+[bans]
+# Fail on multiple versions of the same crate to keep the dependency tree
+# small and the supply chain auditable.
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+# Only crates.io and the git dependencies the toolchain requires.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-git = []
