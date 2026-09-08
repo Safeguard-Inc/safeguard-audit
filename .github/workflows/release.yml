@@ -1,0 +1,53 @@
+name: release
+
+# Runs the full quality gate on a version tag and publishes a GitHub release
+# carrying the changelog. The tag name is the version recorded in
+# CHANGELOG.md; crate publishing to crates.io is a separate, operator-run
+# step (see docs) once the gate is green here.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    name: full gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup component add --toolchain stable rustfmt clippy
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo test --locked --workspace
+
+      - name: Validate schemas and fixtures
+        run: |
+          python3 -m pip install jsonschema
+          bash scripts/check-schema.sh
+
+  publish:
+    name: publish release
+    needs: gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes
