@@ -32,6 +32,6 @@ jobs:
 
       # cargo-deny-action runs in its own container with a pinned cargo-deny
       # binary, so no host Rust toolchain is needed here.
-      - uses: EmbarkStudios/cargo-deny-action@b66acf5e9fe20f8aba065be86778a8a4c846f902 # v2
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2
         with:
           command: check
