@@ -1,5 +1,8 @@
 # Safeguard Audit
 
+[![CI](https://github.com/Safeguard-Inc/safeguard-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/Safeguard-Inc/safeguard-audit/actions/workflows/ci.yml)
+[![Security](https://github.com/Safeguard-Inc/safeguard-audit/actions/workflows/security.yml/badge.svg)](https://github.com/Safeguard-Inc/safeguard-audit/actions/workflows/security.yml)
+
 **VERIFY layer of the Safeguard compliance stack for Stellar Confidential Tokens.**
 
 Safeguard is a three-polyrepo system built around a DEFINE → ENFORCE → VERIFY pipeline:
