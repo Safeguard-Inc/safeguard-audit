@@ -1,5 +1,21 @@
+# Rust / Cargo
 /target
 **/*.rs.bk
-__pycache__/
+
+# Test snapshots (soroban-sdk testutils)
+**/test_snapshots/
+
+# Python
+**/__pycache__/
 *.pyc
+
+# Environment & secrets
 .env
+.env.*
+!.env.example
+
+# Editors & OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
