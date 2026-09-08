@@ -6,6 +6,22 @@ series of tested commits.
 
 ## [Unreleased]
 
+### Repository hardening
+
+- **Cross-repo protocol references** — new `interfaces/` directory pinning
+  the receiving side of the hooks event surface and the policy wire
+  contract (`interfaces/events.md`, `interfaces/policy.md`).
+- **Supply-chain gate** — `deny.toml` (cargo-deny: advisories, licenses,
+  sources) enforced in `.github/workflows/security.yml`, and dependabot
+  for Cargo + GitHub Actions.
+- **CI hardening** — all GitHub Actions pinned to commit SHAs; cargo
+  commands build against the committed lockfile (`--locked`); a
+  version-tag release workflow gates and publishes releases.
+- **Governance** — CODEOWNERS, issue templates (bug/feature/security),
+  expanded `.gitignore`.
+- **Metadata** — workspace `description`, `documentation`, and
+  `rust-version`; relicensed to Apache-2.0 to match the polyrepo family.
+
 ### Phase 1 — Domain foundation (complete)
 
 The provider-neutral vocabulary, persistence contract, and wire contracts
