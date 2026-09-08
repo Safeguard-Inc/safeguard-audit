@@ -100,7 +100,7 @@ crates/
                      public-reference rows, content digests
 schemas/             17 JSON Schemas for the wire contracts (checked in CI)
 fixtures/            Synthetic schema-valid instances for every contract
-interfaces/          Planned: cross-repo protocol references (events to/from hooks)
+interfaces/          Cross-repo protocol references (hooks events + policy wire, receiving side)
 scripts/             check-schema.sh / check_schemas.py validation tooling
 docs/                Architecture, model, and operations documentation
 .github/             CI + security workflows and the PR template
