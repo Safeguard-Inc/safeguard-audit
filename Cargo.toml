@@ -24,6 +24,7 @@ description = "Verification layer for the Safeguard compliance stack on Stellar 
 documentation = "https://docs.rs/safeguard-audit"
 authors = ["Safeguard Inc."]
 edition = "2021"
+rust-version = "1.91"
 license = "Apache-2.0"
 repository = "https://github.com/Safeguard-Inc/safeguard-audit"
 keywords = ["stellar", "soroban", "confidential-tokens", "audit", "compliance"]
