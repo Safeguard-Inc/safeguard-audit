@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # Cargo workspace dependencies. Bumps are validated by the CI gate
+  # (fmt, clippy, tests, schemas) before merge.
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # GitHub Actions workflows: pin and update the actions the pipeline uses.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
