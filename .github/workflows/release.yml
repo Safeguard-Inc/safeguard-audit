@@ -9,8 +9,12 @@ on:
   push:
     tags: ["v*"]
 
+# Least privilege: nothing here needs a write token except the job that
+# creates the GitHub release. The verification gate runs read-only, so a
+# compromised step cannot tamper with repository content while a release is
+# being cut.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   gate:
