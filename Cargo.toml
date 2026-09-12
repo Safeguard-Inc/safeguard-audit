@@ -35,3 +35,14 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
 thiserror = "2"
+
+# Shared lint policy: no unsafe code anywhere in the workspace. Mirrors the
+# sibling polyrepos; the audit layer is verification infrastructure and
+# hand-written unsafe has no legitimate use here. (No member of this
+# workspace uses proc-macro harnesses that emit `allow(unsafe_code)`, so
+# unlike safeguard-hooks this can use the absolute forbid level.)
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

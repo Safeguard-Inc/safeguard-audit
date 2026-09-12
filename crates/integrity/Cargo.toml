@@ -19,3 +19,6 @@ thiserror.workspace = true
 [dev-dependencies]
 safeguard-audit-memory-store = { path = "../memory-store", version = "0.1.0" }
 safeguard-audit-storage = { path = "../storage", version = "0.1.0" }
+
+[lints]
+workspace = true

@@ -14,3 +14,6 @@ publish = false
 safeguard-audit-core = { path = "../audit-core", version = "0.1.0" }
 serde.workspace = true
 serde_json.workspace = true
+
+[lints]
+workspace = true
