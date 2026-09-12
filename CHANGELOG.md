@@ -6,6 +6,15 @@ series of tested commits.
 
 ## [Unreleased]
 
+### Repository hardening — lint policy and release hygiene
+
+- **Workspace lint policy** — `unsafe_code` forbidden workspace-wide
+  (all fifteen crates opt in) and `clippy::all` enforced, matching the
+  sibling polyrepos; enforced by the existing clippy gate (`-D warnings`).
+- **Least-privilege release** — `release.yml` runs `contents:read` at the
+  workflow level; only the release-publishing job holds `contents:write`.
+- **README** — release workflow badge added for pipeline visibility parity.
+
 ### Cross-repo event surface sync
 
 - **`initialized` event ingestion** — the normalizer now decodes,
