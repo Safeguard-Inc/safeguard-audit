@@ -1,0 +1,123 @@
+# CodeRabbit configuration for safeguard-audit.
+#
+# The review posture here mirrors the repository's own gates: CI already
+# enforces fmt, clippy with -D warnings, the full test suite, the JSON
+# schema checks and the error-catalog parity check. CodeRabbit therefore
+# concentrates on what those gates cannot see -- invariants that hold across
+# a change, error-taxonomy stability, privacy regressions in the audit
+# record model, and test quality.
+language: en-US
+
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  review_status: true
+  collapse_walkthrough: false
+  sequence_diagrams: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+    base_branches:
+      - main
+
+  path_filters:
+    - "!**/target/**"
+    - "!**/Cargo.lock"
+    - "!CHANGELOG.md"
+
+  path_instructions:
+    - path: "crates/**/src/errors.rs"
+      instructions: >-
+        This file defines public error API. Flag any renamed, removed or
+        reordered variant, and any changed numeric code, as a breaking
+        change: the codes are quoted in stored records, log lines and
+        downstream integrations, so they are assign-only. A new variant
+        must also be registered in errors/catalog.json (run
+        `python3 scripts/error_catalog.py --write`); a variant that no code
+        path can emit is dead surface and should be removed rather than
+        added.
+    - path: "crates/audit-core/**"
+      instructions: >-
+        audit-core owns the audit record model. The privacy rule is
+        absolute: error messages, logs and serialized records must never
+        carry confidential values -- no balances, ciphertexts, view keys or
+        credentials. The integrity chain is append-only; flag anything that
+        could rewrite, reorder or skip a record. Timestamps and identifiers
+        must stay deterministic so two runs over the same input produce
+        byte-identical output.
+    - path: "crates/integrity/**"
+      instructions: >-
+        Digest and chain logic. Flag any change to the hashing input
+        ordering, domain separation or canonical serialization: it silently
+        invalidates every previously stored manifest and must be paired
+        with a version bump and a migration note.
+    - path: "crates/privacy/**"
+      instructions: >-
+        Redaction and disclosure-ceiling logic. A broadening of what may be
+        disclosed, or a redaction that fails open, is a security defect.
+        Prefer explicit allow-lists over deny-lists.
+    - path: "crates/authorization/**"
+      instructions: >-
+        Access control. Denials must fail closed; every decision must be
+        explainable from the auditor's declared role, scope, network and
+        classification. Flag any path where an unknown or missing value
+        resolves to permitted.
+    - path: "crates/**/tests/**"
+      instructions: >-
+        Tests must assert on observable behaviour and exact error classes,
+        not on implementation detail. Flag assertions so weak they would
+        pass against a broken implementation, and any test that encodes a
+        fixture constant instead of deriving it.
+    - path: "schemas/**"
+      instructions: >-
+        JSON schemas are a published contract. Flag any removed or narrowed
+        property, any tightened `required`, and any change to an enum's
+        member set without a corresponding documentation and version note.
+    - path: ".github/workflows/**"
+      instructions: >-
+        Workflows are security-sensitive. Third-party actions must stay
+        pinned to a full commit SHA with the version in a trailing comment;
+        unpinned `@v*` references are a supply-chain defect. Check that
+        permissions follow least privilege and that every job has a bounded
+        timeout-minutes.
+
+  tools:
+    clippy:
+      enabled: true
+    actionlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    markdownlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    semgrep:
+      enabled: true
+    checkov:
+      enabled: false
+    ruff:
+      enabled: true
+    hadolint:
+      enabled: false
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  learnings:
+    scope: auto
+  issues:
+    scope: auto
+  pull_requests:
+    scope: auto
