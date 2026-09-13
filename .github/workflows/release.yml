@@ -8,6 +8,11 @@ name: release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    # Operator rehearsal: run the full gate against any ref without cutting
+    # a release. The publish job below is tag-gated, so a dispatch exercises
+    # everything except publishing — the pipeline proves itself before the
+    # first real tag is cut.
 
 # A release cut is per-tag by definition, so runs can never collide; the
 # group still guards against a forced tag re-push racing an in-flight gate.
@@ -53,6 +58,9 @@ jobs:
     name: publish release
     needs: gate
     runs-on: ubuntu-latest
+    # Tag-only: on a manual dispatch GITHUB_REF_NAME is the branch name, and
+    # `gh release create main` would cut a nonsense release.
+    if: github.ref_type == 'tag'
     timeout-minutes: 10
     permissions:
       contents: write
