@@ -30,14 +30,36 @@ jobs:
       # a silently changed "latest" artifact cannot weaken the gate.
       - name: Lint workflow files (pinned actionlint, checksum-verified)
         run: |
-          # Release assets are served from a CDN that occasionally answers
-          # with an empty 200; retry, then refuse to checksum an empty body.
-          curl --proto '=https' --tlsv1.2 -sSfL --retry 5 --retry-all-errors --retry-delay 2 \
-            -o /tmp/actionlint.tar.gz \
-            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
-          test -s /tmp/actionlint.tar.gz
-          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  /tmp/actionlint.tar.gz" | sha256sum --check --
-          mkdir /tmp/actionlint && tar xzf /tmp/actionlint.tar.gz -C /tmp/actionlint
+          # Release assets are served from a CDN that intermittently answers
+          # with a short, truncated or otherwise corrupt 200 body. The fetch
+          # and the checksum check are therefore retried as a single atomic
+          # unit: a body that does not match the pinned digest is discarded
+          # and refetched, so a transient CDN fault cannot redden main. The
+          # pinned digest is still the only thing that can make the step
+          # succeed -- a persistently wrong artifact fails once the attempts
+          # are exhausted, and the job never falls back to a weaker binary.
+          ACTIONLINT_SHA256="8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+          ACTIONLINT_URL="https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
+          fetched=0
+          for attempt in 1 2 3 4 5; do
+            rm -f /tmp/actionlint.tar.gz
+            if curl --proto '=https' --tlsv1.2 -sSfL --retry 3 --retry-all-errors --retry-delay 2 \
+                 -o /tmp/actionlint.tar.gz "$ACTIONLINT_URL" \
+              && test -s /tmp/actionlint.tar.gz \
+              && echo "$ACTIONLINT_SHA256  /tmp/actionlint.tar.gz" | sha256sum --check --status --; then
+              echo "actionlint archive checksum-verified on attempt ${attempt}"
+              fetched=1
+              break
+            fi
+            echo "::warning::actionlint download did not verify on attempt ${attempt}; retrying"
+            sleep $((attempt * 2))
+          done
+          if [ "$fetched" -ne 1 ]; then
+            echo "::error::no checksum-verified actionlint archive after 5 attempts"
+            exit 1
+          fi
+          rm -rf /tmp/actionlint && mkdir -p /tmp/actionlint
+          tar xzf /tmp/actionlint.tar.gz -C /tmp/actionlint
           /tmp/actionlint/actionlint -color
 
   checks:
