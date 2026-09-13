@@ -62,6 +62,21 @@ EventStore interface"). Bodies explain the *why*, name the files touched,
 and note what changed in tests and docs. Commits are authored by the
 contributor — no bot co-author trailers.
 
+## Cutting a release
+
+1. Record the version under CHANGELOG.md's `Unreleased` heading, dated
+   today, and commit that on its own.
+2. Rehearse first: dispatch the `release` workflow from the Actions tab
+   (or `gh workflow run release`). Its full gate runs against `main`
+   without publishing anything — the pipeline proves itself before the
+   tag exists, not for the first time at the tag.
+3. When the rehearsal is green, tag and push: `git tag vX.Y.Z && git
+   push origin vX.Y.Z`. The pipeline re-runs the full gate on the tag
+   and creates the GitHub release with generated notes.
+4. Publishing the crates to crates.io is an operator-run step performed
+   only after the tagged release is green (see the header of
+   `.github/workflows/release.yml` for the rationale).
+
 ## Security issues
 
 Do **not** open a public issue for a vulnerability. Follow
