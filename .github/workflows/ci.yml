@@ -13,6 +13,29 @@ concurrency:
   cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
+  workflow-lint:
+    name: workflow files (actionlint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Validate every workflow with actionlint before anything else runs.
+      # This gate exists because a workflow file GitHub rejects at validation
+      # time (e.g. a step-level-only context such as `secrets` referenced in
+      # a job-level `if`) surfaces as a zero-job failure that YAML parsers
+      # silently tolerate — and a broken release pipeline then hides behind
+      # a green CI. The binary is pinned to an exact release and verified
+      # against the upstream checksum before use: a compromised download or
+      # a silently changed "latest" artifact cannot weaken the gate.
+      - name: Lint workflow files (pinned actionlint, checksum-verified)
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf -o /tmp/actionlint.tar.gz \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  /tmp/actionlint.tar.gz" | sha256sum --check --
+          mkdir /tmp/actionlint && tar xzf /tmp/actionlint.tar.gz -C /tmp/actionlint
+          /tmp/actionlint/actionlint -color
+
   checks:
     name: fmt · clippy · tests · schemas
     runs-on: ubuntu-latest
