@@ -94,6 +94,12 @@ jobs:
           python3 -m pip install jsonschema
           bash scripts/check-schema.sh
 
+      # The error taxonomy is public API: other repositories branch on these
+      # codes. Fail the build when a variant, its stable code or its rendered
+      # documentation drifts from the others.
+      - name: Validate the error catalog
+        run: bash scripts/check-errors.sh
+
       - name: Lint and syntax-check shell scripts
         run: |
           for script in scripts/*.sh; do

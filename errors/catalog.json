@@ -1,0 +1,906 @@
+{
+  "version": 1,
+  "codes": [
+    {
+      "id": "SGA-AUDIT-ERROR-INVALID-IDENTIFIER",
+      "code": 1001,
+      "enum": "AuditError",
+      "variant": "InvalidIdentifier",
+      "kind": "struct",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "An identifier failed structural validation (empty, wrong length, forbidden characters, or an out-of-range value)."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-INVALID-TIMESTAMP",
+      "code": 1002,
+      "enum": "AuditError",
+      "variant": "InvalidTimestamp",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "A timestamp was outside the representable or acceptable range."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-INVALID-EVENT",
+      "code": 1003,
+      "enum": "AuditError",
+      "variant": "InvalidEvent",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "The event is structurally well-formed but semantically invalid."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-UNSUPPORTED-EVENT",
+      "code": 1004,
+      "enum": "AuditError",
+      "variant": "UnsupportedEvent",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "The event type is not in the supported registry."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-UNSUPPORTED-EVENT-VERSION",
+      "code": 1005,
+      "enum": "AuditError",
+      "variant": "UnsupportedEventVersion",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "The event version predates or postdates what this build understands."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-DUPLICATE-EVENT",
+      "code": 1006,
+      "enum": "AuditError",
+      "variant": "DuplicateEvent",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "An event that was already recorded was presented for insertion."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-AUTHORIZATION-FAILURE",
+      "code": 1007,
+      "enum": "AuditError",
+      "variant": "AuthorizationFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "A caller attempted something they are not authorized to do."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-SCOPE-VIOLATION",
+      "code": 1008,
+      "enum": "AuditError",
+      "variant": "ScopeViolation",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "The caller is authorized but the request is outside their scope."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-STORAGE-FAILURE",
+      "code": 1009,
+      "enum": "AuditError",
+      "variant": "StorageFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "The underlying storage layer failed."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-SOURCE-FAILURE",
+      "code": 1010,
+      "enum": "AuditError",
+      "variant": "SourceFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "An upstream event source failed (network, timeout, malformed reply)."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-INTEGRITY-FAILURE",
+      "code": 1011,
+      "enum": "AuditError",
+      "variant": "IntegrityFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "An integrity check failed: digest mismatch, broken chain, tampering."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-MALFORMED-EVIDENCE",
+      "code": 1012,
+      "enum": "AuditError",
+      "variant": "MalformedEvidence",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "Evidence could not be parsed or did not match its manifest."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-REPORT-GENERATION-FAILURE",
+      "code": 1013,
+      "enum": "AuditError",
+      "variant": "ReportGenerationFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "A report could not be generated."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-EXPORT-FAILURE",
+      "code": 1014,
+      "enum": "AuditError",
+      "variant": "ExportFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "An export could not be produced."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-DECRYPTION-AUTHORIZATION-FAILURE",
+      "code": 1015,
+      "enum": "AuditError",
+      "variant": "DecryptionAuthorizationFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "A decryption request was refused by the authorization boundary."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-UNSUPPORTED-SCHEMA",
+      "code": 1016,
+      "enum": "AuditError",
+      "variant": "UnsupportedSchema",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "The data carries a schema this build does not understand."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-VERSION-MISMATCH",
+      "code": 1017,
+      "enum": "AuditError",
+      "variant": "VersionMismatch",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "Two versions that must agree do not (policy, enforcement, parser...)."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-REPLAY-CONFLICT",
+      "code": 1018,
+      "enum": "AuditError",
+      "variant": "ReplayConflict",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "Replay would conflict with existing production history."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-SERIALIZATION-FAILURE",
+      "code": 1019,
+      "enum": "AuditError",
+      "variant": "SerializationFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "Canonical serialization failed (a value was not serializable)."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-INVALID-QUERY",
+      "code": 1020,
+      "enum": "AuditError",
+      "variant": "InvalidQuery",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "A query was structurally invalid (contradictory filters, unknown fields, impossible ranges)."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-VALIDATION-FAILURE",
+      "code": 1021,
+      "enum": "AuditError",
+      "variant": "ValidationFailure",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "A value failed validation that is not covered by a more specific variant (used by builders for compound invariants)."
+    },
+    {
+      "id": "SGA-AUDIT-ERROR-INTERNAL",
+      "code": 1022,
+      "enum": "AuditError",
+      "variant": "Internal",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/errors.rs",
+      "summary": "An invariant violation or programmer error; never user-triggerable."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-UNKNOWN-AUDITOR",
+      "code": 1101,
+      "enum": "AuthorizationError",
+      "variant": "UnknownAuditor",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "The auditor identity is not registered with any grants."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-INVALID-CREDENTIAL",
+      "code": 1102,
+      "enum": "AuthorizationError",
+      "variant": "InvalidCredential",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "The presented credential is not registered or does not match the identity claiming it."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-CREDENTIAL-EXPIRED",
+      "code": 1103,
+      "enum": "AuthorizationError",
+      "variant": "CredentialExpired",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "The credential has expired as of the decision time."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-EMPTY-GRANT",
+      "code": 1104,
+      "enum": "AuthorizationError",
+      "variant": "EmptyGrant",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "A grant was defined without any scopes and without the `all` scope \u2014 it can never authorize anything, which is almost certainly a configuration error."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-INVALID-SCOPE",
+      "code": 1105,
+      "enum": "AuthorizationError",
+      "variant": "InvalidScope",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "A scope could not be built from the supplied parts."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-UNLOGGABLE-SCOPE",
+      "code": 1106,
+      "enum": "AuthorizationError",
+      "variant": "UnloggableScope",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "The requested scope is not representable as a stable label."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-ACCESS-LOG-FAILURE",
+      "code": 1107,
+      "enum": "AuthorizationError",
+      "variant": "AccessLogFailure",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "The authorizer was asked to record an access entry it could not persist (e.g. the store rejected the audit-access record)."
+    },
+    {
+      "id": "SGA-AUTHORIZATION-ERROR-INTERNAL",
+      "code": 1108,
+      "enum": "AuthorizationError",
+      "variant": "Internal",
+      "kind": "tuple",
+      "module": "crates/authorization/src/errors.rs",
+      "summary": "An internal invariant was violated (e.g. a grant table with an inconsistent role). This is a bug, not a policy outcome."
+    },
+    {
+      "id": "SGA-DECRYPTION-ERROR-INVALID-REQUEST",
+      "code": 1201,
+      "enum": "DecryptionError",
+      "variant": "InvalidRequest",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/decryption.rs",
+      "summary": "The request violated the boundary contract."
+    },
+    {
+      "id": "SGA-DECRYPTION-ERROR-NOT-AUTHORIZED",
+      "code": 1202,
+      "enum": "DecryptionError",
+      "variant": "NotAuthorized",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/decryption.rs",
+      "summary": "The requester is not an authorized view-key holder."
+    },
+    {
+      "id": "SGA-DECRYPTION-ERROR-DENIED",
+      "code": 1203,
+      "enum": "DecryptionError",
+      "variant": "Denied",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/decryption.rs",
+      "summary": "The request was authorized but the provider refused this access."
+    },
+    {
+      "id": "SGA-DECRYPTION-ERROR-FAILED",
+      "code": 1204,
+      "enum": "DecryptionError",
+      "variant": "Failed",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/decryption.rs",
+      "summary": "The provider could not complete the request."
+    },
+    {
+      "id": "SGA-EVENT-ERROR-UNSUPPORTED-EVENT-TYPE",
+      "code": 1301,
+      "enum": "EventError",
+      "variant": "UnsupportedEventType",
+      "kind": "tuple",
+      "module": "crates/audit-events/src/errors.rs",
+      "summary": "The event type is not in the supported registry."
+    },
+    {
+      "id": "SGA-EVENT-ERROR-UNSUPPORTED-EVENT-VERSION",
+      "code": 1302,
+      "enum": "EventError",
+      "variant": "UnsupportedEventVersion",
+      "kind": "tuple",
+      "module": "crates/audit-events/src/errors.rs",
+      "summary": "The event's version predates or postdates this build."
+    },
+    {
+      "id": "SGA-EVENT-ERROR-MALFORMED-PAYLOAD",
+      "code": 1303,
+      "enum": "EventError",
+      "variant": "MalformedPayload",
+      "kind": "tuple",
+      "module": "crates/audit-events/src/errors.rs",
+      "summary": "The event payload is structurally malformed."
+    },
+    {
+      "id": "SGA-EVENT-ERROR-MISSING-FIELD",
+      "code": 1304,
+      "enum": "EventError",
+      "variant": "MissingField",
+      "kind": "tuple",
+      "module": "crates/audit-events/src/errors.rs",
+      "summary": "A required field is absent."
+    },
+    {
+      "id": "SGA-EVENT-ERROR-INVALID-FIELD-VALUE",
+      "code": 1305,
+      "enum": "EventError",
+      "variant": "InvalidFieldValue",
+      "kind": "struct",
+      "module": "crates/audit-events/src/errors.rs",
+      "summary": "A field has an invalid value."
+    },
+    {
+      "id": "SGA-EVENT-ERROR-AMBIGUOUS-ORDER",
+      "code": 1306,
+      "enum": "EventError",
+      "variant": "AmbiguousOrder",
+      "kind": "tuple",
+      "module": "crates/audit-events/src/errors.rs",
+      "summary": "Ordering metadata is ambiguous or contradictory."
+    },
+    {
+      "id": "SGA-EVENT-ERROR-NOT-DERIVABLE",
+      "code": 1307,
+      "enum": "EventError",
+      "variant": "NotDerivable",
+      "kind": "tuple",
+      "module": "crates/audit-events/src/errors.rs",
+      "summary": "The event cannot be derived from the given sources."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-NOT-AUTHORIZED",
+      "code": 1401,
+      "enum": "EvidenceError",
+      "variant": "NotAuthorized",
+      "kind": "tuple",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "The acting auditor was not authorized to generate evidence."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-NO-SOURCE-RECORDS",
+      "code": 1402,
+      "enum": "EvidenceError",
+      "variant": "NoSourceRecords",
+      "kind": "unit",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "Evidence requires at least one named source record."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-RECORD-MISSING",
+      "code": 1403,
+      "enum": "EvidenceError",
+      "variant": "RecordMissing",
+      "kind": "tuple",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "A named source record does not exist in the audit store."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-TAMPERED-SOURCE",
+      "code": 1404,
+      "enum": "EvidenceError",
+      "variant": "TamperedSource",
+      "kind": "tuple",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "A source record failed integrity verification; evidence is never built over altered records."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-INVALID-CONTENT",
+      "code": 1405,
+      "enum": "EvidenceError",
+      "variant": "InvalidContent",
+      "kind": "tuple",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "Invalid arguments or content (e.g. an unsupported kind)."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-INTEGRITY",
+      "code": 1406,
+      "enum": "EvidenceError",
+      "variant": "Integrity",
+      "kind": "tuple",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "The integrity crate failed (hashing, manifest, or verification)."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-EVENT-RECORD",
+      "code": 1407,
+      "enum": "EvidenceError",
+      "variant": "EventRecord",
+      "kind": "tuple",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "Recording the evidence-generated event into the audit store failed."
+    },
+    {
+      "id": "SGA-EVIDENCE-ERROR-INTERNAL",
+      "code": 1408,
+      "enum": "EvidenceError",
+      "variant": "Internal",
+      "kind": "tuple",
+      "module": "crates/evidence/src/errors.rs",
+      "summary": "Internal invariant broken (never expected at runtime)."
+    },
+    {
+      "id": "SGA-INDEXER-ERROR-SOURCE",
+      "code": 1501,
+      "enum": "IndexerError",
+      "variant": "Source",
+      "kind": "tuple",
+      "module": "crates/event-indexer/src/errors.rs",
+      "summary": "The event source failed to produce a page (retryable). The message carries the source's own error text."
+    },
+    {
+      "id": "SGA-INDEXER-ERROR-NORMALIZE",
+      "code": 1502,
+      "enum": "IndexerError",
+      "variant": "Normalize",
+      "kind": "tuple",
+      "module": "crates/event-indexer/src/errors.rs",
+      "summary": "A raw item failed normalization (per-item, not retryable as-is)."
+    },
+    {
+      "id": "SGA-INDEXER-ERROR-STORE",
+      "code": 1503,
+      "enum": "IndexerError",
+      "variant": "Store",
+      "kind": "tuple",
+      "module": "crates/event-indexer/src/errors.rs",
+      "summary": "The store rejected a write (operator intervention)."
+    },
+    {
+      "id": "SGA-INDEXER-ERROR-CHECKPOINT",
+      "code": 1504,
+      "enum": "IndexerError",
+      "variant": "Checkpoint",
+      "kind": "tuple",
+      "module": "crates/event-indexer/src/errors.rs",
+      "summary": "The checkpoint could not be loaded, saved, or honored."
+    },
+    {
+      "id": "SGA-INDEXER-ERROR-ORDERING",
+      "code": 1505,
+      "enum": "IndexerError",
+      "variant": "Ordering",
+      "kind": "tuple",
+      "module": "crates/event-indexer/src/errors.rs",
+      "summary": "Events within one page violated the deterministic ordering rules."
+    },
+    {
+      "id": "SGA-INDEXER-ERROR-POSITION",
+      "code": 1506,
+      "enum": "IndexerError",
+      "variant": "Position",
+      "kind": "tuple",
+      "module": "crates/event-indexer/src/errors.rs",
+      "summary": "An item's recorded position is inconsistent with the source's contract (e.g. the source re-served an item at or before the checkpoint position)."
+    },
+    {
+      "id": "SGA-INDEXER-ERROR-INTERNAL",
+      "code": 1507,
+      "enum": "IndexerError",
+      "variant": "Internal",
+      "kind": "tuple",
+      "module": "crates/event-indexer/src/errors.rs",
+      "summary": "Invariant violation or programmer error; never user-triggerable."
+    },
+    {
+      "id": "SGA-INTEGRITY-ERROR-INVALID-ARGUMENTS",
+      "code": 1601,
+      "enum": "IntegrityError",
+      "variant": "InvalidArguments",
+      "kind": "tuple",
+      "module": "crates/integrity/src/errors.rs",
+      "summary": "A manifest range or argument was incoherent."
+    },
+    {
+      "id": "SGA-INTEGRITY-ERROR-CANONICALIZATION",
+      "code": 1602,
+      "enum": "IntegrityError",
+      "variant": "Canonicalization",
+      "kind": "tuple",
+      "module": "crates/integrity/src/errors.rs",
+      "summary": "A record could not be canonicalized (should never happen for the domain types; surfaced rather than hidden)."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-CASE-NOT-FOUND",
+      "code": 1701,
+      "enum": "InvestigationError",
+      "variant": "CaseNotFound",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "The case id does not exist in the case store."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-CASE-ALREADY-EXISTS",
+      "code": 1702,
+      "enum": "InvestigationError",
+      "variant": "CaseAlreadyExists",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "A case with this id already exists (idempotent re-open is handled explicitly; an unexpected duplicate is a bug)."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-INVALID-TRANSITION",
+      "code": 1703,
+      "enum": "InvestigationError",
+      "variant": "InvalidTransition",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "The requested status transition is not allowed by the case model."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-CLOSED-CASE",
+      "code": 1704,
+      "enum": "InvestigationError",
+      "variant": "ClosedCase",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "The operation requires the case to be open (findings, notes, linking, and transitions after closure are rejected)."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-NOT-AUTHORIZED",
+      "code": 1705,
+      "enum": "InvestigationError",
+      "variant": "NotAuthorized",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "The actor is not authorized for the operation on this case."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-MISSING-RECORD",
+      "code": 1706,
+      "enum": "InvestigationError",
+      "variant": "MissingRecord",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "A referenced audit record does not exist in the store."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-STORE",
+      "code": 1707,
+      "enum": "InvestigationError",
+      "variant": "Store",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "A case-store operation failed."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-LIFECYCLE-RECORD",
+      "code": 1708,
+      "enum": "InvestigationError",
+      "variant": "LifecycleRecord",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "An audit-store (EventStore) operation failed while recording a lifecycle event."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-INVALID-CONTENT",
+      "code": 1709,
+      "enum": "InvestigationError",
+      "variant": "InvalidContent",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "Validation of case content failed (title, summary bounds, etc.)."
+    },
+    {
+      "id": "SGA-INVESTIGATION-ERROR-INTERNAL",
+      "code": 1710,
+      "enum": "InvestigationError",
+      "variant": "Internal",
+      "kind": "tuple",
+      "module": "crates/investigation/src/errors.rs",
+      "summary": "An internal invariant was violated. This is a bug, not a workflow outcome."
+    },
+    {
+      "id": "SGA-NORMALIZER-ERROR-UNSUPPORTED-SCHEME",
+      "code": 1801,
+      "enum": "NormalizerError",
+      "variant": "UnsupportedScheme",
+      "kind": "tuple",
+      "module": "crates/event-normalizer/src/errors.rs",
+      "summary": "The item named a scheme this build does not implement."
+    },
+    {
+      "id": "SGA-NORMALIZER-ERROR-UNSUPPORTED-VERSION",
+      "code": 1802,
+      "enum": "NormalizerError",
+      "variant": "UnsupportedVersion",
+      "kind": "struct",
+      "module": "crates/event-normalizer/src/errors.rs",
+      "summary": "The scheme is known but the payload version is not supported."
+    },
+    {
+      "id": "SGA-NORMALIZER-ERROR-MALFORMED-PAYLOAD",
+      "code": 1803,
+      "enum": "NormalizerError",
+      "variant": "MalformedPayload",
+      "kind": "struct",
+      "module": "crates/event-normalizer/src/errors.rs",
+      "summary": "The payload was not decodable JSON or not the expected shape."
+    },
+    {
+      "id": "SGA-NORMALIZER-ERROR-VALIDATION-FAILED",
+      "code": 1804,
+      "enum": "NormalizerError",
+      "variant": "ValidationFailed",
+      "kind": "struct",
+      "module": "crates/event-normalizer/src/errors.rs",
+      "summary": "The payload decoded but violated semantic rules."
+    },
+    {
+      "id": "SGA-NORMALIZER-ERROR-CLASSIFICATION-FAILED",
+      "code": 1805,
+      "enum": "NormalizerError",
+      "variant": "ClassificationFailed",
+      "kind": "struct",
+      "module": "crates/event-normalizer/src/errors.rs",
+      "summary": "The payload was valid but could not be projected onto the envelope."
+    },
+    {
+      "id": "SGA-PERMISSION-REASON-GRANTED-BY-ROLE",
+      "code": 1901,
+      "enum": "PermissionReason",
+      "variant": "GrantedByRole",
+      "kind": "unit",
+      "module": "crates/authorization/src/permissions.rs",
+      "summary": "The role baseline grants the action."
+    },
+    {
+      "id": "SGA-PERMISSION-REASON-GRANTED-BY-OVERRIDE",
+      "code": 1902,
+      "enum": "PermissionReason",
+      "variant": "GrantedByOverride",
+      "kind": "unit",
+      "module": "crates/authorization/src/permissions.rs",
+      "summary": "An explicit per-identity override granted it."
+    },
+    {
+      "id": "SGA-PERMISSION-REASON-EXPLICITLY-DENIED",
+      "code": 1903,
+      "enum": "PermissionReason",
+      "variant": "ExplicitlyDenied",
+      "kind": "unit",
+      "module": "crates/authorization/src/permissions.rs",
+      "summary": "An explicit per-identity override revoked it."
+    },
+    {
+      "id": "SGA-PERMISSION-REASON-NOT-GRANTED",
+      "code": 1904,
+      "enum": "PermissionReason",
+      "variant": "NotGranted",
+      "kind": "unit",
+      "module": "crates/authorization/src/permissions.rs",
+      "summary": "Neither the role nor any override grants it."
+    },
+    {
+      "id": "SGA-REPORTING-ERROR-NOT-AUTHORIZED",
+      "code": 2001,
+      "enum": "ReportingError",
+      "variant": "NotAuthorized",
+      "kind": "tuple",
+      "module": "crates/reporting/src/errors.rs",
+      "summary": "The acting auditor was not authorized to generate reports."
+    },
+    {
+      "id": "SGA-REPORTING-ERROR-INVALID-REQUEST",
+      "code": 2002,
+      "enum": "ReportingError",
+      "variant": "InvalidRequest",
+      "kind": "tuple",
+      "module": "crates/reporting/src/errors.rs",
+      "summary": "The request was malformed or incoherent."
+    },
+    {
+      "id": "SGA-REPORTING-ERROR-UNSUPPORTED-KIND",
+      "code": 2003,
+      "enum": "ReportingError",
+      "variant": "UnsupportedKind",
+      "kind": "tuple",
+      "module": "crates/reporting/src/errors.rs",
+      "summary": "An unsupported report kind was requested."
+    },
+    {
+      "id": "SGA-REPORTING-ERROR-STORE",
+      "code": 2004,
+      "enum": "ReportingError",
+      "variant": "Store",
+      "kind": "tuple",
+      "module": "crates/reporting/src/errors.rs",
+      "summary": "The store query/scan failed."
+    },
+    {
+      "id": "SGA-REPORTING-ERROR-INTEGRITY",
+      "code": 2005,
+      "enum": "ReportingError",
+      "variant": "Integrity",
+      "kind": "tuple",
+      "module": "crates/reporting/src/errors.rs",
+      "summary": "Hashing or canonicalization failed."
+    },
+    {
+      "id": "SGA-REPORTING-ERROR-EVENT-RECORD",
+      "code": 2006,
+      "enum": "ReportingError",
+      "variant": "EventRecord",
+      "kind": "tuple",
+      "module": "crates/reporting/src/errors.rs",
+      "summary": "Recording the report-generated event failed."
+    },
+    {
+      "id": "SGA-REPORTING-ERROR-INTERNAL",
+      "code": 2007,
+      "enum": "ReportingError",
+      "variant": "Internal",
+      "kind": "tuple",
+      "module": "crates/reporting/src/errors.rs",
+      "summary": "Internal invariant broken (never expected at runtime)."
+    },
+    {
+      "id": "SGA-RPC-ERROR-TRANSPORT",
+      "code": 2101,
+      "enum": "RpcError",
+      "variant": "Transport",
+      "kind": "tuple",
+      "module": "crates/rpc/src/errors.rs",
+      "summary": "The transport could not complete the exchange (connection failure, timeout, node unreachable). Potentially transient \u2014 the retry policy treats this class as retryable."
+    },
+    {
+      "id": "SGA-RPC-ERROR-SERVER",
+      "code": 2102,
+      "enum": "RpcError",
+      "variant": "Server",
+      "kind": "struct",
+      "module": "crates/rpc/src/errors.rs",
+      "summary": "The node answered with a JSON-RPC error member."
+    },
+    {
+      "id": "SGA-RPC-ERROR-MALFORMED",
+      "code": 2103,
+      "enum": "RpcError",
+      "variant": "Malformed",
+      "kind": "tuple",
+      "module": "crates/rpc/src/errors.rs",
+      "summary": "The response violated the JSON-RPC or getEvents envelope contract (wrong protocol version, missing result and error, undecodable body). Retrying cannot fix a malformed response."
+    },
+    {
+      "id": "SGA-RPC-ERROR-INVALID-REQUEST",
+      "code": 2104,
+      "enum": "RpcError",
+      "variant": "InvalidRequest",
+      "kind": "tuple",
+      "module": "crates/rpc/src/errors.rs",
+      "summary": "The request itself was rejected by local validation (an incoherent combination of parameters, an out-of-range limit)."
+    },
+    {
+      "id": "SGA-SOURCE-ERROR-FETCH-FAILED",
+      "code": 2201,
+      "enum": "SourceError",
+      "variant": "FetchFailed",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/source.rs",
+      "summary": "The source could not produce a page (network, decode, backend)."
+    },
+    {
+      "id": "SGA-SOURCE-ERROR-INVALID-POSITION",
+      "code": 2202,
+      "enum": "SourceError",
+      "variant": "InvalidPosition",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/source.rs",
+      "summary": "A resume position was unknown or invalid to this source."
+    },
+    {
+      "id": "SGA-SOURCE-ERROR-LIMIT-OUT-OF-RANGE",
+      "code": 2203,
+      "enum": "SourceError",
+      "variant": "LimitOutOfRange",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/source.rs",
+      "summary": "A page limit was outside the source's supported range."
+    },
+    {
+      "id": "SGA-SOURCE-ERROR-INVALID-ITEM",
+      "code": 2204,
+      "enum": "SourceError",
+      "variant": "InvalidItem",
+      "kind": "tuple",
+      "module": "crates/audit-core/src/source.rs",
+      "summary": "An item violated the source item contract."
+    },
+    {
+      "id": "SGA-STORE-ERROR-NOT-FOUND",
+      "code": 2301,
+      "enum": "StoreError",
+      "variant": "NotFound",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "The requested record does not exist."
+    },
+    {
+      "id": "SGA-STORE-ERROR-DUPLICATE",
+      "code": 2302,
+      "enum": "StoreError",
+      "variant": "Duplicate",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "An insert collided with an existing record/event."
+    },
+    {
+      "id": "SGA-STORE-ERROR-INVALID-CURSOR",
+      "code": 2303,
+      "enum": "StoreError",
+      "variant": "InvalidCursor",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "A cursor was malformed or out of range."
+    },
+    {
+      "id": "SGA-STORE-ERROR-INVALID-QUERY",
+      "code": 2304,
+      "enum": "StoreError",
+      "variant": "InvalidQuery",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "A query was structurally invalid (e.g. contradictory filters)."
+    },
+    {
+      "id": "SGA-STORE-ERROR-BATCH-REJECTED",
+      "code": 2305,
+      "enum": "StoreError",
+      "variant": "BatchRejected",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "A batch was rejected as a whole (validation or write conflict)."
+    },
+    {
+      "id": "SGA-STORE-ERROR-INTEGRITY-MISMATCH",
+      "code": 2306,
+      "enum": "StoreError",
+      "variant": "IntegrityMismatch",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "An integrity expectation of the store failed (tamper detection)."
+    },
+    {
+      "id": "SGA-STORE-ERROR-UNSUPPORTED",
+      "code": 2307,
+      "enum": "StoreError",
+      "variant": "Unsupported",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "The requested operation is unsupported by this store."
+    },
+    {
+      "id": "SGA-STORE-ERROR-STORAGE-FAILURE",
+      "code": 2308,
+      "enum": "StoreError",
+      "variant": "StorageFailure",
+      "kind": "tuple",
+      "module": "crates/storage/src/errors.rs",
+      "summary": "The underlying storage backend failed."
+    }
+  ],
+  "retired": []
+}
