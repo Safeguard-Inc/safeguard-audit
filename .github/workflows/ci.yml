@@ -50,6 +50,10 @@ jobs:
           rustup toolchain install stable --profile minimal
           rustup component add --toolchain stable rustfmt clippy
 
+      - uses: taiki-e/install-action@d438492cf8a250514fa2d34b30bc3c0dc37c65ff # v2.87.8
+        with:
+          tool: shellcheck
+
       - name: Format
         run: cargo fmt --all -- --check
 
@@ -63,6 +67,13 @@ jobs:
         run: |
           python3 -m pip install jsonschema
           bash scripts/check-schema.sh
+
+      - name: Lint and syntax-check shell scripts
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+          done
+          shellcheck --severity=style scripts/*.sh
 
   coverage:
     name: Coverage gate (≥80% lines)
