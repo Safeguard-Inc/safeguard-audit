@@ -6,6 +6,26 @@ series of tested commits.
 
 ## [Unreleased]
 
+### Pipeline and release hardening — batch 2
+
+- **Bounded CI runtime** — every job carries an explicit
+  `timeout-minutes` (15–25) instead of GitHub's 6-hour default; a hung
+  run now fails visibly in minutes.
+- **Concurrency groups** — one active run per (workflow, ref); rapid
+  pushes supersede stale runs, scheduled sweeps never cancel in-flight
+  verification, release runs group per-tag.
+- **Workflow validation gate** — actionlint (pinned release, verified
+  against the upstream SHA-256 checksum) runs as the first CI job, so a
+  workflow file GitHub would reject at validation time can no longer
+  reach `main` silently.
+- **Shell script gate** — `bash -n` + `shellcheck --severity=style`
+  over every script in the main gate, installed via the same pinned
+  install-action the coverage job uses.
+- **Rehearsable releases** — `release.yml` gains `workflow_dispatch`
+  (gate-only rehearsal) and a hard `github.ref_type == 'tag'` gate on
+  the publishing job; the release procedure is documented in
+  `CONTRIBUTING.md`.
+
 ### Repository hardening — lint policy and release hygiene
 
 - **Workspace lint policy** — `unsafe_code` forbidden workspace-wide
