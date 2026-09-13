@@ -32,6 +32,15 @@ safeguard-policy  safeguard-hooks  safeguard-audit
 | ------------------- | ------------ | ----------------- |
 | `safeguard-policy`  | Define       | "What should happen?" |
 | `safeguard-hooks`   | Enforce      | "Make it happen." |
+| `safeguard-docs`    | Explain      | "How does it fit together, and does it work?" |
+
+📖 **Documentation hub:** <https://safeguard-docs.vercel.app> —
+[architecture](https://safeguard-docs.vercel.app/docs/architecture) ·
+[live Testnet contracts](https://safeguard-docs.vercel.app/docs/contracts) ·
+[error codes](https://github.com/Safeguard-Inc/safeguard-docs/blob/main/docs/error-codes.md)
+
+> **Quick links:** [generated error registry](docs/errors.md) ·
+> [audit model](docs/audit-model.md) · [open issues](https://github.com/Safeguard-Inc/safeguard-audit/issues)
 | **`safeguard-audit`** | **Verify** | **"What happened?"** |
 
 This repository is the **audit and verification layer**. It records and
