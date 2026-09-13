@@ -35,10 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install Rust toolchain
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup component add --toolchain stable rustfmt clippy
+      - name: Install the pinned Rust toolchain
+        run: scripts/install-toolchain.sh --component rustfmt --component clippy
 
       - name: Format
         run: cargo fmt --all -- --check

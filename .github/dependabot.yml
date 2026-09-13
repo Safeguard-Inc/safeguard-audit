@@ -1,5 +1,14 @@
 version: 2
 updates:
+  # The pinned Rust release. A bump is reviewed like a code change because the
+  # coverage figure in docs/coverage.md is a property of the compiler, so the
+  # pin and that number move together (procedure in rust-toolchain.toml).
+  - package-ecosystem: rust-toolchain
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+
   # Cargo workspace dependencies. Bumps are validated by the CI gate
   # (fmt, clippy, tests, schemas) before merge.
   - package-ecosystem: cargo

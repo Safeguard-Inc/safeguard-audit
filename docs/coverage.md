@@ -8,9 +8,21 @@ Overall line coverage of the Rust workspace is **≥ 80%**, enforced by the
 the TOTAL line-cover of `cargo llvm-cov --workspace --summary-only` drops
 below 80%.
 
-Measured on `main` (September 2026): **92.6%** line coverage overall —
-every crate in the workspace is individually above the threshold, including
-the verified Soroban wire model and the event-source invariants tests.
+Measured on `main` (September 2026) on the pinned toolchain
+(`rust-toolchain.toml`, `1.98.1`): **92.6%** line coverage overall — every
+crate in the workspace is individually above the threshold, including the
+verified Soroban wire model and the event-source invariants tests.
+
+Coverage is a property of the compiler as well as the tests — instrumentation
+and inlining both move it — so the figure is only meaningful next to the
+release that produced it. Re-measure and update this line in the same change
+that bumps the pin (the procedure is documented in `rust-toolchain.toml`).
+When re-measuring, run it exactly as CI does:
+
+```bash
+bash scripts/install-toolchain.sh --component llvm-tools-preview
+bash scripts/coverage.sh
+```
 
 ## How to run
 

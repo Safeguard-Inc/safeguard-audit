@@ -199,8 +199,11 @@ python3 -m pip install jsonschema   # strict schema validation (CI installs it)
 bash scripts/check-schema.sh        # validate schemas + fixtures
 ```
 
-Everything runs on stable Rust; the toolchain is pinned in
-`rust-toolchain.toml`.
+Everything runs on the Rust release pinned in `rust-toolchain.toml`
+(`1.98.1`). CI installs that exact pin through
+`scripts/install-toolchain.sh`, which fails if the version that resolves is
+not the pin — so a published measurement cannot be attributed to a compiler
+nobody chose.
 
 ## Integrity, privacy, and security model
 

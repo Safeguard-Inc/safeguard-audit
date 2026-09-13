@@ -1,4 +1,31 @@
+# Rust toolchain, pinned to an exact release.
+#
+# Why an exact version, not `stable`: this workspace publishes measurements —
+# `docs/coverage.md` reports a line-coverage figure, and the error-catalog and
+# evidence digests are byte-reproducible by design. Coverage in particular
+# moves with the compiler (instrumentation and inlining both change it), so
+# under a floating `stable` a published percentage is a point-in-time
+# observation a reviewer cannot reproduce. The pin makes it a claim someone
+# can check.
+#
+# Bumping the pin (one line, and the only line that should ever change here):
+#
+#   1. edit `channel` below to the new release (Dependabot proposes bumps);
+#   2. run `bash scripts/install-toolchain.sh` then the gate:
+#        cargo test --locked --workspace
+#        bash scripts/coverage.sh
+#   3. re-measure and update `docs/coverage.md` in the SAME change — the
+#      figure and the pin belong to each other;
+#   4. note the release next to the measurement so the two stay in step.
+#
+# CI installs this pin through `scripts/install-toolchain.sh`, which reads
+# `channel` from this file and fails if the resolved version is not the pin, so
+# a workflow cannot silently build with some other channel.
+#
+# rustfmt and clippy are used by the CI gate and installed automatically for
+# contributors who use rustup; llvm-tools-preview is CI-only and passed as a
+# `--component` flag in the coverage job rather than forced on contributors.
 [toolchain]
-channel = "stable"
+channel = "1.98.1"
 components = ["rustfmt", "clippy"]
 profile = "minimal"
