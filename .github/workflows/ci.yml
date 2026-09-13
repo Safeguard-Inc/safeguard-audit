@@ -30,8 +30,12 @@ jobs:
       # a silently changed "latest" artifact cannot weaken the gate.
       - name: Lint workflow files (pinned actionlint, checksum-verified)
         run: |
-          curl --proto '=https' --tlsv1.2 -sSf -o /tmp/actionlint.tar.gz \
+          # Release assets are served from a CDN that occasionally answers
+          # with an empty 200; retry, then refuse to checksum an empty body.
+          curl --proto '=https' --tlsv1.2 -sSfL --retry 5 --retry-all-errors --retry-delay 2 \
+            -o /tmp/actionlint.tar.gz \
             https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          test -s /tmp/actionlint.tar.gz
           echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  /tmp/actionlint.tar.gz" | sha256sum --check --
           mkdir /tmp/actionlint && tar xzf /tmp/actionlint.tar.gz -C /tmp/actionlint
           /tmp/actionlint/actionlint -color
