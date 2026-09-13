@@ -5,10 +5,20 @@ on:
     branches: [main]
   pull_request:
 
+# One active run per (workflow, ref): a rapid push sequence supersedes stale
+# runs instead of queueing them, while scheduled sweeps never cancel work
+# that is already in flight on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+
 jobs:
   checks:
     name: fmt · clippy · tests · schemas
     runs-on: ubuntu-latest
+    # Bounded runtime: a hung job fails fast instead of burning the 6-hour
+    # runner default (the gate completes in ~5 minutes locally).
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -34,6 +44,7 @@ jobs:
   coverage:
     name: Coverage gate (≥80% lines)
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

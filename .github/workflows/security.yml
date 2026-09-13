@@ -8,10 +8,17 @@ on:
     # Weekly dependency audit on the default branch.
     - cron: "17 3 * * 1"
 
+# One active run per (workflow, ref); scheduled sweeps never cancel in-flight
+# pushes on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+
 jobs:
   audit:
     name: dependency audit (cargo-audit)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -27,6 +34,7 @@ jobs:
   deny:
     name: advisories · licenses · sources (cargo-deny)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
